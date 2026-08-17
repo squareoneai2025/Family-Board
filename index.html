@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Family Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF9; --sidebar:#F3F5F7; --card:#FFFFFF;
+    --ink:#26282B; --ink-soft:#8A8F98; --line:#EBEDEF;
+    --accent:#6C8EF5; --accent-soft:#E8EDFD;
+    --peach:#F4E4C8; --rose:#F4D6D6; --lavender:#E4DEF1; --mint:#DAF0E8;
+    --teal:#2A9D8F; --coral:#E86A5C; --gold:#D99A1F; --violet:#7C6FC4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0; height:100%;}
+  body{background:var(--bg); font-family:'Inter', sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased;}
+  .shell{display:none; height:100vh; overflow:hidden;}
+
+  .login-gate{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;}
+  .login-card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:36px 32px; text-align:center; max-width:320px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.08);}
+  .login-brand{width:48px; height:48px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Poppins'; font-weight:700; font-size:20px; margin:0 auto 16px;}
+  .login-card h1{font-family:'Poppins'; font-size:20px; margin:0 0 8px;}
+  .login-card p{color:var(--ink-soft); font-size:13px; margin:0 0 20px; line-height:1.5;}
+  #loginForm{display:flex; flex-direction:column; gap:10px;}
+  #loginPassword{border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:15px; text-align:center; font-family:'Inter';}
+  #loginForm button{border:none; background:var(--accent); color:#fff; border-radius:10px; padding:12px; font-weight:700; font-size:15px; cursor:pointer;}
+  #loginForm button:disabled{opacity:0.6; cursor:default;}
+  .login-error{color:var(--coral); font-size:12.5px; margin-top:12px; min-height:16px;}
+
+  .sidebar{width:86px; flex-shrink:0; background:var(--sidebar); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; padding:18px 0;}
+  .brand{width:38px; height:38px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Poppins'; font-weight:700; font-size:16px; margin-bottom:22px; flex-shrink:0;}
+  .navlist{display:flex; flex-direction:column; gap:4px; flex:1; width:100%; align-items:center;}
+  .navspacer{flex:1;}
+  .navbtn{width:66px; padding:9px 0 8px; display:flex; flex-direction:column; align-items:center; gap:4px; border:none; background:transparent; cursor:pointer; border-radius:12px; color:var(--ink-soft); transition:background .15s ease, color .15s ease;}
+  .navbtn svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8;}
+  .navbtn span{font-size:10px; font-weight:600;}
+  .navbtn.active{background:var(--accent-soft); color:var(--accent);}
+  .navbtn:hover:not(.active){background:#EAEDF0;}
+
+  .main-area{flex:1; display:flex; flex-direction:column; min-width:0;}
+  .topbar{background:var(--card); border-bottom:1px solid var(--line); padding:16px 26px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .topbar .datetime{font-family:'Poppins'; font-weight:600; font-size:18px;}
+  .topbar .weather{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:500; font-size:14px;}
+  .topbar .weather .ic{font-size:18px;}
+  .filters{display:flex; gap:8px; margin-left:auto;}
+  .fchip{width:34px; height:34px; border-radius:50%; border:2px solid transparent; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Poppins'; font-weight:600; font-size:13px; cursor:pointer; transition:opacity .15s ease, border-color .15s ease, transform .1s ease;}
+  .fchip:active{transform:scale(0.92);}
+  .filters.filtering .fchip:not(.selected){opacity:0.3;}
+  .fchip.selected{border-color:var(--ink);}
+
+  .content{flex:1; overflow-y:auto; padding:24px 26px 40px;}
+  h1.page-title{font-family:'Poppins'; font-size:20px; font-weight:700; margin:0 0 16px;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 20px;}
+  .card h3{font-family:'Poppins'; font-size:14px; font-weight:600; margin:0 0 14px; display:flex; align-items:center; justify-content:space-between;}
+  .card h3 a{font-size:12px; color:var(--accent); font-weight:600; text-decoration:none;}
+  .empty-state{text-align:center; color:var(--ink-soft); font-size:13px; padding:32px 16px; line-height:1.6;}
+
+  .home-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start;}
+  .day-group{margin-bottom:16px;} .day-group:last-child{margin-bottom:0;}
+  .day-label{font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
+  .row-item{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; margin-bottom:6px; background:#FBFBFA; border:1px solid var(--line);}
+  .row-item:last-child{margin-bottom:0;}
+  .row-item .dot{width:20px; height:20px; border-radius:50%; background:var(--c,var(--teal)); color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Poppins';}
+  .row-item .txt{flex:1; min-width:0;}
+  .row-item .time{font-size:11px; color:var(--ink-soft); display:block;}
+  .row-item .title{font-weight:600; font-size:13.5px;}
+  .row-item .loc{font-size:11px; color:var(--ink-soft);}
+
+  .right-col{display:flex; flex-direction:column; gap:16px;}
+  .weather-strip{display:flex; justify-content:space-between; gap:6px;}
+  .wday{text-align:center; flex:1;}
+  .wday .d{font-size:11px; color:var(--ink-soft); font-weight:600;}
+  .wday .i{font-size:18px; margin:5px 0;}
+  .wday .t{font-size:11px;} .wday .t b{font-weight:700;}
+
+  .mini-task{display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .mini-task:last-child{border-bottom:none;}
+  .mini-task input{accent-color:var(--accent); width:16px; height:16px;}
+  .mini-task .who{width:8px; height:8px; border-radius:50%; background:var(--c,var(--teal)); flex-shrink:0;}
+
+  .preview-row{display:flex; gap:16px;}
+  .preview-card{flex:1; cursor:pointer;}
+  .thumb-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .thumb-grid img{width:100%; height:44px; object-fit:cover; border-radius:8px; display:block;}
+  .cam-thumb{position:relative;}
+  .cam-thumb .live{position:absolute; top:3px; right:3px; width:6px; height:6px; border-radius:50%; background:#59d977; box-shadow:0 0 0 2px rgba(255,255,255,0.7); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+
+  .cal-controls{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  .cal-controls button{border:1px solid var(--line); background:var(--card); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:14px;}
+  .cal-controls .label{font-family:'Poppins'; font-weight:600; font-size:15px;}
+  .week-grid{display:grid; grid-template-columns:repeat(7, minmax(140px,1fr)); gap:10px; overflow-x:auto; padding-bottom:6px;}
+  .day-col{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px; min-height:180px;}
+  .day-col.today{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .day-col .dhead{text-align:center; margin-bottom:8px;}
+  .day-col .dhead .dn{font-size:11px; color:var(--ink-soft); font-weight:600;}
+  .day-col .dhead .dd{font-family:'Poppins'; font-size:18px; font-weight:700;}
+  .chip{background:#FBFBFA; border:1px solid var(--line); border-left:4px solid var(--c,var(--teal)); border-radius:8px; padding:6px 8px; margin-bottom:6px;}
+  .chip .time{font-size:9px; color:var(--ink-soft); display:block;}
+  .chip .title{font-size:12px; font-weight:600;}
+
+  /* ---- editable list building blocks (Tasks / Lists / Meals) ---- */
+  .todo-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:16px;}
+  .col-head{display:flex; align-items:center; gap:9px; margin-bottom:12px;}
+  .col-head .mag{width:30px; height:30px; border-radius:50%; color:#fff; font-family:'Poppins'; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; background:var(--c,var(--teal)); flex-shrink:0;}
+  .col-head .nm{font-weight:700; font-size:14px; display:block;}
+  .col-head .rl{font-size:11px; color:var(--ink-soft);}
+  .task-row{background:#FBFBFA; border:1px solid var(--line); border-radius:10px; padding:9px 12px; margin-bottom:8px; display:flex; align-items:center; gap:8px; font-size:13px;}
+  .task-row input[type=checkbox]{accent-color:var(--accent);}
+  .task-row.done label{text-decoration:line-through; color:var(--ink-soft);}
+  .task-row .st{color:var(--gold); font-size:11px; white-space:nowrap;}
+  .task-row .del{margin-left:auto; border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:15px; line-height:1; padding:2px 4px;}
+  .task-row .del:hover{color:var(--coral);}
+  .add-row{display:flex; gap:6px; margin-top:2px;}
+  .add-row input{flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px; background:#fff;}
+  .add-row button{border:none; background:var(--accent); color:#fff; border-radius:8px; padding:0 14px; font-weight:700; font-size:16px; cursor:pointer;}
+  .star-toggle{display:flex; gap:3px; flex-shrink:0;}
+  .star-btn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:0 8px; font-size:11px; font-weight:700; color:var(--ink-soft); cursor:pointer;}
+  .star-btn.active{background:var(--gold); color:#fff; border-color:var(--gold);}
+
+  .rewards-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px;}
+  .reward-card{text-align:center; padding:22px 16px;}
+  .reward-card .av{width:56px; height:56px; border-radius:50%; color:#fff; font-family:'Poppins'; font-weight:700; font-size:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;}
+  .reward-card .nm{font-family:'Poppins'; font-weight:700; font-size:15px; margin-bottom:4px;}
+  .reward-card .stars-count{font-size:26px; font-weight:700; margin:8px 0 4px; font-family:'Poppins';}
+  .reward-card .goal{font-size:12px; color:var(--ink-soft); margin-bottom:12px;}
+  .bar-track{height:8px; background:var(--line); border-radius:999px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--gold); border-radius:999px; transition:width .2s ease;}
+
+  .lists-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:18px; align-items:start;}
+  .list-col{border-radius:18px; padding:16px; background:var(--peach);}
+  .list-col.lavender{background:var(--lavender);}
+  .list-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .list-head .nm{font-family:'Poppins'; font-weight:700; font-size:15px;}
+  .list-head .cnt{width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.75); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
+  .list-row{background:#fff; border-radius:10px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:500;}
+  .list-row input{accent-color:var(--accent); width:17px; height:17px;}
+  .list-row.done label{text-decoration:line-through; color:var(--ink-soft);}
+  .list-row .del{margin-left:auto; border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:15px;}
+  .list-col .add-row input{background:rgba(255,255,255,0.7);}
+
+  .meals-table{display:flex; flex-direction:column; gap:10px;}
+  .meal-row{display:grid; grid-template-columns:110px 1fr 1fr; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line);}
+  .meal-row:last-child{border-bottom:none;}
+  .meal-day{font-family:'Poppins'; font-weight:700; font-size:13px; padding-top:8px;}
+  .meal-slot .slot-label{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:6px;}
+  .meal-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .meal-chip{background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:5px 10px 5px 12px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;}
+  .meal-chip button{border:none; background:none; color:var(--accent); cursor:pointer; font-size:13px; line-height:1; padding:0;}
+  .meal-add-btn{border:1px dashed var(--line); background:none; color:var(--ink-soft); font-size:12px; font-weight:600; border-radius:999px; padding:5px 12px; cursor:pointer;}
+  .meal-add-row{display:none; gap:6px; margin-top:6px;}
+  .meal-add-row.open{display:flex;}
+  .meal-add-row input{flex:1; border:1px solid var(--line); border-radius:8px; padding:6px 8px; font-size:12.5px;}
+  .meal-add-row button{border:none; background:var(--accent); color:#fff; border-radius:8px; padding:0 10px; font-weight:700; cursor:pointer;}
+
+  .hero-photo{width:100%; height:280px; object-fit:cover; border-radius:18px;}
+  .strip{display:flex; gap:10px; overflow-x:auto; margin-top:14px; padding-bottom:4px;}
+  .strip img{width:96px; height:72px; object-fit:cover; border-radius:10px; cursor:pointer; flex-shrink:0; border:2px solid var(--card); transition:transform .15s ease;}
+  .strip img:hover{transform:translateY(-3px);}
+  .strip img.active{outline:2px solid var(--accent);}
+
+  .cam-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px;}
+  .cam-tile{position:relative; border-radius:16px; overflow:hidden; background:#111; border:1px solid var(--line);}
+  .cam-tile img{width:100%; height:230px; object-fit:cover; display:block; transition:opacity .2s ease;}
+  .cam-tile .bar{position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; padding:26px 12px 10px; display:flex; justify-content:space-between; align-items:center;}
+  .cam-tile .bar .nm{font-weight:700; font-size:14px; font-family:'Poppins';}
+  .cam-tile .live-badge{position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.55); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; display:flex; align-items:center; gap:5px;}
+  .cam-tile .live-badge .d{width:6px; height:6px; border-radius:50%; background:#59d977; animation:pulse 1.6s infinite;}
+  .cam-tile.offline .live-badge .d{background:#ff4d4d; animation:none;}
+  .cam-tile.offline img{opacity:0.12;}
+  .offline-msg{display:none; position:absolute; inset:0; align-items:center; justify-content:center; text-align:center; padding:24px; color:#fff; font-size:13px; font-weight:600; line-height:1.5;}
+  .cam-tile.offline .offline-msg{display:flex;}
+  .open-app-btn{background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.55); color:#fff; text-decoration:none; font-size:11px; font-weight:600; padding:6px 12px; border-radius:999px; white-space:nowrap;}
+
+  .settings-list{display:flex; flex-direction:column;}
+  .settings-row{display:flex; align-items:center; gap:12px; padding:14px 4px; border-bottom:1px solid var(--line);}
+  .settings-row:last-child{border-bottom:none;}
+  .settings-row .av{width:32px; height:32px; border-radius:50%; color:#fff; font-family:'Poppins'; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .settings-row .lbl{font-weight:600; font-size:13.5px;}
+  .settings-row .val{margin-left:auto; color:var(--ink-soft); font-size:12.5px; text-align:right;}
+
+  @media (max-width:760px){
+    .shell{flex-direction:column;}
+    .sidebar{width:100%; height:auto; flex-direction:row; border-right:none; border-top:1px solid var(--line); order:2; padding:8px 4px; overflow-x:auto;}
+    .brand{display:none;} .navlist{flex-direction:row; width:auto;} .navspacer{display:none;}
+    .main-area{order:1;} .home-grid{grid-template-columns:1fr;} .preview-row{flex-direction:column;}
+    .meal-row{grid-template-columns:1fr; gap:6px;} .meal-day{padding-top:0;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginGate" class="login-gate">
+  <div class="login-card">
+    <div class="login-brand">F</div>
+    <h1>Family Board</h1>
+    <p>Enter the household password to unlock the calendar.</p>
+    <form id="loginForm">
+      <input type="password" id="loginPassword" placeholder="Household password" autocomplete="current-password" required>
+      <button type="submit" id="loginBtn">Unlock</button>
+    </form>
+    <div id="loginError" class="login-error"></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand">F</div>
+    <nav class="navlist" id="navlist">
+      <button class="navbtn active" data-page="calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span>Calendar</span></button>
+      <button class="navbtn" data-page="tasks"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 12l3 3 7-7"/></svg><span>Tasks</span></button>
+      <button class="navbtn" data-page="rewards"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.5 6.8-6.2-3.6-6.2 3.6 1.5-6.8-5.1-4.6 6.9-.7z"/></svg><span>Rewards</span></button>
+      <button class="navbtn" data-page="meals"><svg viewBox="0 0 24 24"><path d="M7 2v8M5 2v5a2 2 0 002 2 2 2 0 002-2V2M17 2c-2 1-3 3-3 6s1 5 3 6M17 2v20"/></svg><span>Meals</span></button>
+      <button class="navbtn" data-page="photos"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5.5-5.5L3 20"/></svg><span>Photos</span></button>
+      <button class="navbtn" data-page="lists"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1.3"/><circle cx="3.5" cy="12" r="1.3"/><circle cx="3.5" cy="18" r="1.3"/></svg><span>Lists</span></button>
+      <button class="navbtn" data-page="sleep"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1110 3.2 6.5 6.5 0 0020 14.5z"/></svg><span>Sleep</span></button>
+      <button class="navbtn" data-page="cameras"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg><span>Cameras</span></button>
+      <div class="navspacer"></div>
+      <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.2a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.2a1.7 1.7 0 00-1.4 1z"/></svg><span>Settings</span></button>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="datetime" id="dateSub">—</div>
+      <div class="weather" id="weatherChip"><span class="ic">⏳</span><span>Loading weather…</span></div>
+      <div class="filters" id="filters"></div>
+    </header>
+
+    <main class="content" id="pages">
+
+      <section class="page" id="page-calendar">
+        <div class="home-grid">
+          <div class="card" id="agendaPanel"></div>
+          <div class="right-col">
+            <div class="card"><h3>Weather</h3><div class="weather-strip" id="weatherStrip"><div class="empty-state" style="padding:10px 0;">Loading…</div></div></div>
+            <div class="card"><h3>Open Tasks <a data-goto="tasks">See all →</a></h3><div id="tasksMini"></div></div>
+            <div class="preview-row">
+              <div class="card preview-card" data-goto="photos"><h3>Photos</h3><div class="thumb-grid" id="photoPreview"></div></div>
+              <div class="card preview-card" data-goto="cameras"><h3>Cameras</h3><div class="thumb-grid" id="camPreview"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="cal-controls"><button id="prevWeek">←</button><span class="label" id="weekLabel">This Week</span><button id="nextWeek">→</button></div>
+          <div class="week-grid" id="weekGrid"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-tasks">
+        <h1 class="page-title">Tasks</h1>
+        <div class="todo-grid" id="todoGrid"></div>
+      </section>
+
+      <section class="page" id="page-rewards">
+        <h1 class="page-title">Rewards</h1>
+        <div class="rewards-grid" id="rewardsGrid"></div>
+      </section>
+
+      <section class="page" id="page-meals">
+        <h1 class="page-title">Meals</h1>
+        <div class="card"><div class="meals-table" id="mealsTable"></div></div>
+      </section>
+
+      <section class="page" id="page-photos">
+        <h1 class="page-title">Photos</h1>
+        <img class="hero-photo" id="heroPhoto" src="" alt="Family photo">
+        <div class="strip" id="photoStrip"></div>
+      </section>
+
+      <section class="page" id="page-lists">
+        <h1 class="page-title">Lists</h1>
+        <div class="lists-grid" id="listsGrid"></div>
+      </section>
+
+      <section class="page" id="page-sleep">
+        <h1 class="page-title">Sleep</h1>
+        <div class="card"><div class="empty-state">Not set up yet — let's decide what this should do before I build it.</div></div>
+      </section>
+
+      <section class="page" id="page-cameras">
+        <h1 class="page-title">Cameras</h1>
+        <div class="cam-grid" id="camGrid"></div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <h1 class="page-title">Settings</h1>
+        <div class="card"><h3>Household</h3><div class="settings-list" id="settingsFamily"></div></div>
+        <div class="card" style="margin-top:16px;"><h3>Cameras</h3><div class="settings-list" id="settingsCameras"></div></div>
+        <div class="card" style="margin-top:16px;"><h3>Account</h3>
+          <div class="settings-row"><span class="lbl">Household login</span>
+            <button id="signOutBtn" style="margin-left:auto; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 14px; font-size:12.5px; cursor:pointer; font-family:'Inter';">Sign Out</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+/* ================= FIREBASE AUTH (household login) =================
+   Fill these in from Firebase Console > Project settings > General > Your apps.
+   These values are meant to be public (unlike the camera password) — the real
+   protection comes from Auth requiring sign-in, not from hiding this config. */
+const firebaseConfig = {
+  apiKey: "TODO_FILL_IN",
+  authDomain: "TODO_FILL_IN.firebaseapp.com",
+  projectId: "TODO_FILL_IN",
+  storageBucket: "TODO_FILL_IN.appspot.com",
+  messagingSenderId: "TODO_FILL_IN",
+  appId: "TODO_FILL_IN"
+};
+// Fixed placeholder "username" for the one shared household account — nobody
+// types this, they only ever see the password box. Must match the user you
+// create in Firebase Console > Authentication > Users.
+const HOUSEHOLD_EMAIL = 'household@familyboard.local';
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+
+onAuthStateChanged(auth, user=>{
+  document.getElementById('loginGate').style.display = user ? 'none' : 'flex';
+  document.querySelector('.shell').style.display = user ? 'flex' : 'none';
+});
+
+document.getElementById('loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.textContent = ''; btn.disabled = true; btn.textContent = 'Checking…';
+  try{
+    await signInWithEmailAndPassword(auth, HOUSEHOLD_EMAIL, pw);
+  }catch(err){
+    errEl.textContent = 'Wrong password — try again.';
+  }
+  btn.disabled = false; btn.textContent = 'Unlock';
+});
+document.getElementById('signOutBtn').addEventListener('click', ()=> signOut(auth));
+
+/* ================= FAMILY ================= */
+const family = [
+  {id:'mom',    name:'Mom',    role:'',        hex:'#E86A5C'},
+  {id:'dad',    name:'Dad',    role:'',        hex:'#2A9D8F'},
+  {id:'winston',name:'Winston',role:'',        hex:'#D99A1F'},
+  {id:'warren', name:'Warren', role:'',        hex:'#7C6FC4'}
+];
+const famById = Object.fromEntries(family.map(f=>[f.id,f]));
+
+/* ================= CALENDAR (still placeholder — Google Calendar sync comes later) ================= */
+const events = [
+  {offset:0, time:'8:00 AM',  title:'School drop-off',        person:'mom'},
+  {offset:0, time:'4:30 PM',  title:'Soccer practice',        person:'winston',  loc:'Community Field'},
+  {offset:1, time:'3:30 PM',  title:'Piano lesson',           person:'warren'},
+  {offset:2, time:'10:00 AM', title:'Dentist appointment',    person:'winston'},
+  {offset:3, time:'5:00 PM',  title:'Grocery run',            person:'dad'},
+  {offset:5, time:'9:00 AM',  title:'Soccer game',            person:'winston',  loc:'Riverside Park'},
+  {offset:6, time:'11:00 AM', title:'Farmers market',         person:'mom'}
+];
+
+/* ================= TASKS — starts empty, add-as-you-go, must be assigned ================= */
+let tasks = []; // {id, text, person, done, stars}
+let taskSeq = 1;
+let pendingStars = {}; // per-person star value currently selected in the add-row, defaults to 1
+family.forEach(f=>pendingStars[f.id]=1);
+
+/* ================= LISTS — starts empty, add-as-you-go ================= */
+let lists = {
+  grocery: {name:'Grocery List', color:'peach', items:[]},
+  errands: {name:'Errands',      color:'lavender', items:[]}
+};
+let listItemSeq = 1;
+
+/* ================= MEALS — starts empty, + to add lunch/dinner per day ================= */
+let meals = {}; // meals[offset] = {lunch:[...], dinner:[...]}
+for(let i=0;i<7;i++) meals[i] = {lunch:[], dinner:[]};
+
+const REWARD_GOAL = 5;
+
+/* ================= WEATHER — live via Open-Meteo (no key needed) =================
+   Coordinates below are for ZIP 06897. Update if you move / want a different spot. */
+const HOME_LAT = 41.209, HOME_LON = -73.442, HOME_TZ = 'America/New_York';
+let weatherData = null;
+
+/* ================= CAMERAS (on hold — fill in when back at your computer) ================= */
+const CAMERA_CONFIG = [
+  { name: 'Front Door', ip: '192.168.1.50', user: 'admin', pass: 'YOUR_CAMERA_PASSWORD', snapshotPath: '/cgi-bin/snapshot.cgi' }
+];
+const CAMERA_REFRESH_SECONDS = 5;
+const AMCREST_SHORTCUT_URL = 'shortcuts://run-shortcut?name=OpenAmcrestViewPro';
+function snapshotUrl(cam){ return `http://${cam.user}:${cam.pass}@${cam.ip}${cam.snapshotPath}?t=${Date.now()}`; }
+
+const photoSeeds = ['fam-101','fam-102','fam-103','fam-104','fam-105','fam-106','fam-107','fam-108'];
+const img = (seed,w,h)=>`https://picsum.photos/seed/${seed}/${w}/${h}`;
+
+/* ================= STATE ================= */
+let activeFilters = new Set();
+let weekOffset = 0;
+const today = new Date();
+
+/* ================= HELPERS ================= */
+function addDays(base,n){const d=new Date(base); d.setDate(d.getDate()+n); return d;}
+function sameDay(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
+function dateForOffset(o){return addDays(today,o);}
+function passesFilter(person){return activeFilters.size===0 || activeFilters.has(person);}
+function esc(s){return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+/* ================= TOP BAR ================= */
+function renderTopbar(){
+  const now = new Date();
+  let h = now.getHours(), m = now.getMinutes();
+  const ap = h>=12?'PM':'AM'; h = h%12; if(h===0) h=12;
+  document.getElementById('dateSub').textContent =
+    `${today.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'})}   ${h}:${String(m).padStart(2,'0')} ${ap}`;
+}
+function renderFilters(){
+  const wrap = document.getElementById('filters');
+  wrap.innerHTML = family.map(f=>`<button class="fchip" style="background:${f.hex}" data-person="${f.id}" title="${f.name}">${f.name[0]}</button>`).join('');
+  wrap.querySelectorAll('.fchip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = btn.dataset.person;
+      if(activeFilters.has(p)) activeFilters.delete(p); else activeFilters.add(p);
+      wrap.classList.toggle('filtering', activeFilters.size>0);
+      btn.classList.toggle('selected', activeFilters.has(p));
+      renderAgenda(); renderWeek();
+    });
+  });
+}
+
+/* ================= WEATHER ================= */
+const WMO_ICON = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',56:'🌦️',57:'🌦️',
+  61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌧️',81:'🌧️',82:'🌧️',
+  85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
+function wmoIcon(code){ return WMO_ICON[code] || '🌡️'; }
+
+async function loadWeather(){
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${HOME_LAT}&longitude=${HOME_LON}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=${encodeURIComponent(HOME_TZ)}&forecast_days=6`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('bad response');
+    weatherData = await res.json();
+    renderWeatherChip();
+    renderWeatherStrip();
+  }catch(err){
+    document.getElementById('weatherChip').innerHTML = `<span class="ic">—</span><span>Weather unavailable</span>`;
+    document.getElementById('weatherStrip').innerHTML = `<div class="empty-state" style="padding:10px 0;">Couldn't load forecast.</div>`;
+  }
+}
+function renderWeatherChip(){
+  const c = weatherData.current;
+  document.getElementById('weatherChip').innerHTML = `<span class="ic">${wmoIcon(c.weather_code)}</span><span>${Math.round(c.temperature_2m)}°F</span>`;
+}
+function renderWeatherStrip(){
+  const d = weatherData.daily;
+  let html = '';
+  for(let i=0;i<5;i++){
+    const dt = new Date(d.time[i]+'T12:00:00');
+    html += `<div class="wday"><div class="d">${dt.toLocaleDateString('en-US',{weekday:'short'})}</div><div class="i">${wmoIcon(d.weather_code[i])}</div><div class="t"><b>${Math.round(d.temperature_2m_max[i])}°</b> ${Math.round(d.temperature_2m_min[i])}°</div></div>`;
+  }
+  document.getElementById('weatherStrip').innerHTML = html;
+}
+
+/* ================= CALENDAR: agenda + week ================= */
+function renderAgenda(){
+  const panel = document.getElementById('agendaPanel');
+  const groups = [
+    {label:'Today', offset:0}, {label:'Tomorrow', offset:1},
+    {label: dateForOffset(2).toLocaleDateString('en-US',{weekday:'long'}), offset:2}
+  ];
+  let html = `<h3>This Week <a data-goto="calendar">Full week →</a></h3>`;
+  groups.forEach(g=>{
+    const dayEvents = events.filter(e=>e.offset===g.offset && passesFilter(e.person)).sort((a,b)=>a.time.localeCompare(b.time));
+    html += `<div class="day-group"><div class="day-label">${g.label}</div>`;
+    if(dayEvents.length===0){ html += `<div class="empty-state" style="padding:14px 0;">Nothing on the calendar.</div>`; }
+    else{
+      dayEvents.forEach(e=>{
+        const f = famById[e.person];
+        html += `<div class="row-item" style="--c:${f.hex}"><div class="dot">${f.name[0]}</div><div class="txt"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span>${e.loc?`<span class="loc">${esc(e.loc)}</span>`:''}</div></div>`;
+      });
+    }
+    html += `</div>`;
+  });
+  panel.innerHTML = html;
+}
+function renderWeek(){
+  const startOfWeek = addDays(today, -today.getDay() + weekOffset*7);
+  document.getElementById('weekLabel').textContent = weekOffset===0 ? 'This Week' :
+    (weekOffset>0 ? `${weekOffset} week${weekOffset>1?'s':''} ahead` : `${Math.abs(weekOffset)} week${Math.abs(weekOffset)>1?'s':''} ago`);
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = addDays(startOfWeek,i);
+    const isToday = sameDay(d,today);
+    const dayEvents = events.filter(e=>sameDay(dateForOffset(e.offset), d) && passesFilter(e.person)).sort((a,b)=>a.time.localeCompare(b.time));
+    html += `<div class="day-col ${isToday?'today':''}"><div class="dhead"><div class="dn">${d.toLocaleDateString('en-US',{weekday:'short'})}</div><div class="dd">${d.getDate()}</div></div>`;
+    if(dayEvents.length===0){ html += `<div class="empty-state" style="padding:10px 0; font-size:11px;">—</div>`; }
+    else{ dayEvents.forEach(e=>{ const f=famById[e.person]; html += `<div class="chip" style="--c:${f.hex}"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span></div>`; }); }
+    html += `</div>`;
+  }
+  document.getElementById('weekGrid').innerHTML = html;
+}
+function renderTasksMini(){
+  const open = tasks.filter(t=>!t.done).slice(0,4);
+  const wrap = document.getElementById('tasksMini');
+  if(open.length===0){ wrap.innerHTML = `<div class="empty-state" style="padding:10px 0;">No open tasks.</div>`; return; }
+  wrap.innerHTML = open.map(t=>{
+    const f = famById[t.person];
+    return `<div class="mini-task"><input type="checkbox" disabled><span class="who" style="--c:${f.hex}"></span><label>${esc(t.text)}</label></div>`;
+  }).join('');
+}
+function renderPreviews(){
+  document.getElementById('photoPreview').innerHTML = photoSeeds.slice(0,4).map(s=>`<img src="${img(s,120,90)}" alt="">`).join('');
+  const camPrev = document.getElementById('camPreview');
+  camPrev.style.gridTemplateColumns = CAMERA_CONFIG.length>1 ? '1fr 1fr' : '1fr';
+  camPrev.innerHTML = CAMERA_CONFIG.map(c=>`<div class="cam-thumb"><img src="${snapshotUrl(c)}" alt="" style="width:100%;height:44px;object-fit:cover;border-radius:8px;" onerror="this.style.opacity=0.15" onload="this.style.opacity=1"><span class="live"></span></div>`).join('');
+}
+
+/* ================= TASKS PAGE ================= */
+function renderTasks(){
+  document.getElementById('todoGrid').innerHTML = family.map(f=>{
+    const list = tasks.filter(t=>t.person===f.id);
+    return `<div>
+      <div class="col-head"><div class="mag" style="background:${f.hex}">${f.name[0]}</div><div><span class="nm">${f.name}</span></div></div>
+      ${list.length===0 ? `<div class="empty-state" style="padding:14px 4px; font-size:12.5px;">No tasks yet</div>` : ''}
+      ${list.map(t=>`<div class="task-row ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} data-task="${t.id}" class="task-check"><label>${esc(t.text)}</label><span class="st">${'★'.repeat(t.stars)}</span><button class="del" data-del-task="${t.id}">×</button></div>`).join('')}
+      <div class="add-row">
+        <input type="text" placeholder="Add task…" data-add-task="${f.id}">
+        <div class="star-toggle" data-star-group="${f.id}">
+          <button type="button" class="star-btn ${pendingStars[f.id]===1?'active':''}" data-star-val="1">★</button>
+          <button type="button" class="star-btn ${pendingStars[f.id]===2?'active':''}" data-star-val="2">★★</button>
+        </div>
+        <button data-add-btn="${f.id}">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.task-check').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const t = tasks.find(x=>x.id==cb.dataset.task);
+      if(t){ t.done = cb.checked; renderTasks(); renderTasksMini(); renderRewards(); }
+    });
+  });
+  document.querySelectorAll('[data-del-task]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tasks = tasks.filter(t=>t.id != btn.dataset.delTask);
+      renderTasks(); renderTasksMini(); renderRewards();
+    });
+  });
+  document.querySelectorAll('.star-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const group = btn.closest('.star-toggle');
+      pendingStars[group.dataset.starGroup] = Number(btn.dataset.starVal);
+      group.querySelectorAll('.star-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    });
+  });
+  function addTaskFor(pid, input){
+    const val = input.value.trim();
+    if(!val) return;
+    tasks.push({id:taskSeq++, text:val, person:pid, done:false, stars:pendingStars[pid]||1});
+    input.value='';
+    renderTasks(); renderTasksMini(); renderRewards();
+  }
+  document.querySelectorAll('[data-add-btn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = document.querySelector(`[data-add-task="${btn.dataset.addBtn}"]`);
+      addTaskFor(btn.dataset.addBtn, input);
+    });
+  });
+  document.querySelectorAll('[data-add-task]').forEach(input=>{
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') addTaskFor(input.dataset.addTask, input); });
+  });
+}
+
+/* ================= REWARDS ================= */
+function renderRewards(){
+  document.getElementById('rewardsGrid').innerHTML = family.map(f=>{
+    const stars = tasks.filter(t=>t.person===f.id && t.done).reduce((sum,t)=>sum+t.stars,0);
+    const pct = Math.min(100, Math.round(stars/REWARD_GOAL*100));
+    return `<div class="card reward-card">
+      <div class="av" style="background:${f.hex}">${f.name[0]}</div>
+      <div class="nm">${f.name}</div>
+      <div class="stars-count">${stars} ★</div>
+      <div class="goal">${stars}/${REWARD_GOAL} toward next reward</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ================= LISTS PAGE ================= */
+function renderLists(){
+  document.getElementById('listsGrid').innerHTML = Object.entries(lists).map(([key,l])=>`
+    <div class="list-col ${l.color}">
+      <div class="list-head"><span class="nm">${l.name}</span><span class="cnt">${l.items.length}</span></div>
+      ${l.items.length===0 ? `<div class="empty-state" style="padding:10px 4px; font-size:12.5px;">Nothing here yet</div>` : ''}
+      ${l.items.map(it=>`<div class="list-row ${it.done?'done':''}"><input type="checkbox" ${it.done?'checked':''} data-list-check="${key}:${it.id}"><label>${esc(it.text)}</label><button class="del" data-list-del="${key}:${it.id}">×</button></div>`).join('')}
+      <div class="add-row"><input type="text" placeholder="Add item…" data-list-add="${key}"><button data-list-add-btn="${key}">+</button></div>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('[data-list-check]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const [key,id] = cb.dataset.listCheck.split(':');
+      const item = lists[key].items.find(x=>String(x.id)===id);
+      if(item){ item.done = cb.checked; renderLists(); }
+    });
+  });
+  document.querySelectorAll('[data-list-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [key,id] = btn.dataset.listDel.split(':');
+      lists[key].items = lists[key].items.filter(x=>String(x.id)!==id);
+      renderLists();
+    });
+  });
+  function addItemTo(key, input){
+    const val = input.value.trim();
+    if(!val) return;
+    lists[key].items.push({id:listItemSeq++, text:val, done:false});
+    input.value='';
+    renderLists();
+  }
+  document.querySelectorAll('[data-list-add-btn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = document.querySelector(`[data-list-add="${btn.dataset.listAddBtn}"]`);
+      addItemTo(btn.dataset.listAddBtn, input);
+    });
+  });
+  document.querySelectorAll('[data-list-add]').forEach(input=>{
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') addItemTo(input.dataset.listAdd, input); });
+  });
+}
+
+/* ================= MEALS PAGE ================= */
+function renderMeals(){
+  const dayLabels = [0,1,2,3,4,5,6].map(o=> o===0?'Today': o===1?'Tomorrow': dateForOffset(o).toLocaleDateString('en-US',{weekday:'long'}));
+  document.getElementById('mealsTable').innerHTML = dayLabels.map((label,o)=>`
+    <div class="meal-row">
+      <div class="meal-day">${label}</div>
+      ${['lunch','dinner'].map(slot=>`
+        <div class="meal-slot">
+          <div class="slot-label">${slot}</div>
+          <div class="meal-chips">
+            ${meals[o][slot].map((m,i)=>`<span class="meal-chip">${esc(m)}<button data-meal-del="${o}:${slot}:${i}">×</button></span>`).join('')}
+          </div>
+          <button class="meal-add-btn" data-meal-toggle="${o}:${slot}">+ Add ${slot}</button>
+          <div class="meal-add-row" id="mealadd-${o}-${slot}">
+            <input type="text" placeholder="e.g. Tacos" data-meal-input="${o}:${slot}">
+            <button data-meal-add="${o}:${slot}">Add</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  document.querySelectorAll('[data-meal-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [o,slot] = btn.dataset.mealToggle.split(':');
+      document.getElementById(`mealadd-${o}-${slot}`).classList.toggle('open');
+    });
+  });
+  function addMeal(o, slot, input){
+    const val = input.value.trim();
+    if(!val) return;
+    meals[o][slot].push(val);
+    input.value='';
+    renderMeals();
+  }
+  document.querySelectorAll('[data-meal-add]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [o,slot] = btn.dataset.mealAdd.split(':');
+      addMeal(o, slot, document.querySelector(`[data-meal-input="${o}:${slot}"]`));
+    });
+  });
+  document.querySelectorAll('[data-meal-input]').forEach(input=>{
+    input.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ const [o,slot] = input.dataset.mealInput.split(':'); addMeal(o, slot, input); }
+    });
+  });
+  document.querySelectorAll('[data-meal-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const [o,slot,i] = btn.dataset.mealDel.split(':');
+      meals[o][slot].splice(Number(i),1);
+      renderMeals();
+    });
+  });
+}
+
+/* ================= PHOTOS ================= */
+function renderPhotos(){
+  const hero = document.getElementById('heroPhoto');
+  hero.src = img(photoSeeds[0],900,500);
+  document.getElementById('photoStrip').innerHTML = photoSeeds.map((s,i)=>`<img src="${img(s,200,150)}" data-seed="${s}" class="${i===0?'active':''}">`).join('');
+  document.querySelectorAll('.strip img').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      hero.src = img(el.dataset.seed,900,500);
+      document.querySelectorAll('.strip img').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+}
+
+/* ================= CAMERAS ================= */
+function renderCameras(){
+  document.getElementById('camGrid').innerHTML = CAMERA_CONFIG.map((c,i)=>`
+    <div class="cam-tile" id="cam-${i}">
+      <img src="${snapshotUrl(c)}" alt="${c.name}" onerror="document.getElementById('cam-${i}').classList.add('offline')" onload="document.getElementById('cam-${i}').classList.remove('offline')">
+      <div class="offline-msg">Camera unavailable —<br>check you're on home WiFi,<br>or use the Amcrest app.</div>
+      <span class="live-badge"><span class="d"></span>${CAMERA_REFRESH_SECONDS}s refresh</span>
+      <div class="bar"><span class="nm">${c.name}</span><a class="open-app-btn" href="${AMCREST_SHORTCUT_URL}">Open Amcrest ›</a></div>
+    </div>
+  `).join('');
+}
+function refreshCameraImages(){
+  CAMERA_CONFIG.forEach((c,i)=>{ const t=document.getElementById('cam-'+i); if(t) t.querySelector('img').src = snapshotUrl(c); });
+  const previewImgs = document.querySelectorAll('#camPreview img');
+  CAMERA_CONFIG.forEach((c,i)=>{ if(previewImgs[i]) previewImgs[i].src = snapshotUrl(c); });
+}
+setInterval(refreshCameraImages, CAMERA_REFRESH_SECONDS*1000);
+
+/* ================= SETTINGS ================= */
+function renderSettings(){
+  document.getElementById('settingsFamily').innerHTML = family.map(f=>
+    `<div class="settings-row"><div class="av" style="background:${f.hex}">${f.name[0]}</div><span class="lbl">${f.name}</span></div>`
+  ).join('');
+  document.getElementById('settingsCameras').innerHTML = CAMERA_CONFIG.map(c=>
+    `<div class="settings-row"><div class="av" style="background:var(--ink)">📷</div><span class="lbl">${c.name}</span><span class="val">${c.ip} · refresh ${CAMERA_REFRESH_SECONDS}s</span></div>`
+  ).join('') + `<div class="settings-row" style="border-top:1px dashed var(--line); margin-top:4px; padding-top:14px;"><span class="val" style="margin-left:0;">Edit camera IP / credentials in CAMERA_CONFIG in the page source.</span></div>`;
+}
+
+/* ================= NAV ================= */
+function switchPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+id));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.page===id));
+}
+document.getElementById('navlist').addEventListener('click', e=>{ const btn = e.target.closest('.navbtn'); if(btn) switchPage(btn.dataset.page); });
+document.addEventListener('click', e=>{ const goto = e.target.closest('[data-goto]'); if(goto) switchPage(goto.dataset.goto); });
+document.getElementById('prevWeek').addEventListener('click', ()=>{weekOffset--; renderWeek();});
+document.getElementById('nextWeek').addEventListener('click', ()=>{weekOffset++; renderWeek();});
+
+/* ================= INIT ================= */
+switchPage('calendar');
+renderTopbar(); setInterval(renderTopbar,15000);
+renderFilters();
+renderAgenda();
+renderTasksMini();
+renderPreviews();
+renderWeek();
+renderTasks();
+renderRewards();
+renderLists();
+renderMeals();
+renderPhotos();
+renderCameras();
+renderSettings();
+loadWeather(); setInterval(loadWeather, 15*60*1000); // refresh weather every 15 min
+</script>
+</body>
+</html>

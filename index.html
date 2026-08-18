@@ -53,7 +53,10 @@
   .fchip.selected{border-color:var(--ink);}
   .cal-filter-bar{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
   .cal-filter-bar .flabel{font-size:12px; font-weight:600; color:var(--ink-soft);}
-  .add-event-btn{margin-left:auto; border:none; background:var(--accent); color:#fff; border-radius:8px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter'; flex-shrink:0;}
+  .add-event-btn{border:none; background:var(--accent); color:#fff; border-radius:8px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter'; flex-shrink:0;}
+  .refresh-btn{margin-left:auto; border:1px solid var(--line); background:#fff; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--ink-soft); transition:transform .3s ease;}
+  .refresh-btn.spinning{animation:spin .6s linear;}
+  @keyframes spin{ to{ transform:rotate(360deg); } }
 
   .view-toggle{display:flex; gap:6px; margin-bottom:12px;}
   .view-tab{border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft);}
@@ -318,6 +321,7 @@
         <div class="cal-filter-bar">
           <span class="flabel">Filter:</span>
           <div class="filters" id="filters"></div>
+          <button class="refresh-btn" id="refreshEventsBtn" title="Refresh events from Google Calendar">⟳</button>
           <button class="add-event-btn" id="addEventBtn">+ Add Event</button>
         </div>
         <div class="card" id="agendaPanelFull"></div>
@@ -1408,6 +1412,13 @@ document.querySelectorAll('.view-tab').forEach(btn=>{
     document.getElementById('lookaheadView').style.display = view==='lookahead' ? 'block' : 'none';
   });
 });
+document.getElementById('refreshEventsBtn').addEventListener('click', async ()=>{
+  if(!gCalendarConnected){ connectGoogleCalendar(); return; }
+  const btn = document.getElementById('refreshEventsBtn');
+  btn.classList.add('spinning');
+  await loadGoogleEvents();
+  setTimeout(()=> btn.classList.remove('spinning'), 600);
+});
 document.getElementById('evPerson').innerHTML = `<option value="">—</option>` + family.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
 document.getElementById('addEventBtn').addEventListener('click', openAddEventModal);
 document.getElementById('evCancelBtn').addEventListener('click', closeEventModal);
@@ -1447,7 +1458,7 @@ renderSleepControls();
 loadWeather(); setInterval(loadWeather, 15*60*1000); // refresh weather every 15 min
 renderCalendarConnectionUI();
 initGoogleAuth();
-setInterval(()=>{ if(gCalendarConnected) loadGoogleEvents(); }, 15*60*1000); // refresh events every 15 min
+setInterval(()=>{ if(gCalendarConnected) loadGoogleEvents(); }, 5*60*1000); // refresh events every 5 min — there's no push/webhook sync (would need a backend), this is polling
 setInterval(checkDateRollover, 60000); // catches midnight rollover without a manual reload
 setInterval(checkSleepState, 30000);
 checkSleepState();

@@ -53,6 +53,28 @@
   .fchip.selected{border-color:var(--ink);}
   .cal-filter-bar{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
   .cal-filter-bar .flabel{font-size:12px; font-weight:600; color:var(--ink-soft);}
+  .add-event-btn{margin-left:auto; border:none; background:var(--accent); color:#fff; border-radius:8px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter'; flex-shrink:0;}
+
+  .view-toggle{display:flex; gap:6px; margin-bottom:12px;}
+  .view-tab{border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft);}
+  .view-tab.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .lookahead-week{margin-bottom:22px;}
+  .lookahead-week:last-child{margin-bottom:0;}
+  .lookahead-label{font-family:'Poppins'; font-weight:600; font-size:13px; margin-bottom:8px; color:var(--ink-soft);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1500; display:none; align-items:center; justify-content:center; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal-card{background:var(--card); border-radius:18px; padding:24px; max-width:360px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.15);}
+  .modal-card h3{font-family:'Poppins'; font-size:17px; font-weight:700; margin:0 0 16px;}
+  .modal-row{margin-bottom:12px;}
+  .modal-row label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;}
+  .modal-row input[type=text], .modal-row input[type=date], .modal-row input[type=time], .modal-row select{width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-family:'Inter'; font-size:13.5px;}
+  .modal-row.checkbox-row label{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--ink);}
+  .modal-error{color:var(--coral); font-size:12px; min-height:14px; margin-bottom:4px;}
+  .modal-actions{display:flex; gap:8px; margin-top:8px;}
+  .modal-btn-secondary{flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:10px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter';}
+  .modal-btn-primary{flex:1; border:none; background:var(--accent); color:#fff; border-radius:8px; padding:10px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter';}
+  .modal-btn-primary:disabled{opacity:0.6; cursor:default;}
 
   .content{flex:1; overflow-y:auto; padding:24px 26px 40px;}
   .page{display:none;}
@@ -226,6 +248,23 @@
   <div class="dt" id="sleepDate"></div>
 </div>
 
+<div class="modal-overlay" id="eventModalOverlay">
+  <div class="modal-card">
+    <h3>Add Event</h3>
+    <div class="modal-row"><label>Title</label><input type="text" id="evTitle" placeholder="e.g. Piano lesson"></div>
+    <div class="modal-row"><label>Person</label><select id="evPerson"></select></div>
+    <div class="modal-row"><label>Date</label><input type="date" id="evDate"></div>
+    <div class="modal-row checkbox-row"><label><input type="checkbox" id="evAllDay"> All day</label></div>
+    <div class="modal-row" id="evTimeRow"><label>Time</label><input type="time" id="evTime" value="09:00"></div>
+    <div class="modal-row"><label>Location <span style="font-weight:400;">(optional)</span></label><input type="text" id="evLocation"></div>
+    <div class="modal-error" id="evError"></div>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" id="evCancelBtn" type="button">Cancel</button>
+      <button class="modal-btn-primary" id="evSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="shell">
 
   <aside class="sidebar">
@@ -273,11 +312,19 @@
         <div class="cal-filter-bar">
           <span class="flabel">Filter:</span>
           <div class="filters" id="filters"></div>
+          <button class="add-event-btn" id="addEventBtn">+ Add Event</button>
         </div>
         <div class="card" id="agendaPanelFull"></div>
         <div class="card" style="margin-top:16px;">
-          <div class="cal-controls"><button id="prevWeek">←</button><span class="label" id="weekLabel">This Week</span><button id="nextWeek">→</button></div>
-          <div class="week-grid" id="weekGrid"></div>
+          <div class="view-toggle">
+            <button class="view-tab active" data-calview="week">Week</button>
+            <button class="view-tab" data-calview="lookahead">Next 4 Weeks</button>
+          </div>
+          <div id="weekView">
+            <div class="cal-controls"><button id="prevWeek">←</button><span class="label" id="weekLabel">This Week</span><button id="nextWeek">→</button></div>
+            <div class="week-grid" id="weekGrid"></div>
+          </div>
+          <div id="lookaheadView" style="display:none;"></div>
         </div>
       </section>
 
@@ -507,7 +554,11 @@ let photosMedia = []; // [{path, url}], newest first
    the banner on the Calendar page) brings it back with one tap. */
 const GOOGLE_CLIENT_ID = '179459083003-n1blskaj5bdfaul7igbtpuvrsk25v49e.apps.googleusercontent.com';
 const GOOGLE_CALENDAR_ID = 'primary'; // primary calendar of whichever account authorizes
-const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+// calendar.events (not just .readonly) so the board can create events too, not
+// just display them. This is a broader scope than before — anyone already
+// connected will be silently re-prompted for consent on their next connect,
+// since Google doesn't carry over write access to a scope only granted as read.
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 // Google Calendar's fixed 11-color event palette (colorId -> name/hex). Public,
 // stable values from Google's own colorId reference — not account-specific.
@@ -616,6 +667,76 @@ function renderCalendarConnectionUI(){
   if(status) status.textContent = gCalendarConnected ? 'Connected' : 'Not connected';
   const btn = document.getElementById('gcalConnectBtn');
   if(btn) btn.textContent = gCalendarConnected ? 'Reconnect' : 'Connect';
+}
+
+/* ================= ADD EVENT — writes a real event to Google Calendar ================= */
+function toLocalISODateTime(d){
+  const pad = n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+}
+function openEventModal(){
+  if(!gAccessToken){
+    connectGoogleCalendar();
+    alert('Connecting to Google Calendar — once that finishes, tap "+ Add Event" again.');
+    return;
+  }
+  document.getElementById('evTitle').value = '';
+  document.getElementById('evLocation').value = '';
+  document.getElementById('evPerson').value = '';
+  document.getElementById('evAllDay').checked = false;
+  document.getElementById('evTimeRow').style.display = 'block';
+  document.getElementById('evTime').value = '09:00';
+  document.getElementById('evDate').value = dateKeyFor(today);
+  document.getElementById('evError').textContent = '';
+  document.getElementById('eventModalOverlay').classList.add('open');
+}
+function closeEventModal(){
+  document.getElementById('eventModalOverlay').classList.remove('open');
+}
+async function saveEvent(){
+  const title = document.getElementById('evTitle').value.trim();
+  const dateStr = document.getElementById('evDate').value;
+  const allDay = document.getElementById('evAllDay').checked;
+  const timeStr = document.getElementById('evTime').value;
+  const location = document.getElementById('evLocation').value.trim();
+  const personId = document.getElementById('evPerson').value;
+  const errEl = document.getElementById('evError');
+  const saveBtn = document.getElementById('evSaveBtn');
+  errEl.textContent = '';
+  if(!title){ errEl.textContent = 'Title is required.'; return; }
+  if(!dateStr){ errEl.textContent = 'Date is required.'; return; }
+  if(!allDay && !timeStr){ errEl.textContent = 'Pick a time, or mark it all day.'; return; }
+
+  const body = { summary: title };
+  if(location) body.location = location;
+  if(personId && eventColorMap[personId]) body.colorId = eventColorMap[personId];
+  if(allDay){
+    body.start = {date: dateStr};
+    body.end = {date: dateKeyFor(addDays(new Date(dateStr+'T00:00:00'), 1))};
+  }else{
+    const startDate = new Date(`${dateStr}T${timeStr}:00`);
+    const endDate = new Date(startDate.getTime() + 60*60*1000);
+    body.start = {dateTime: toLocalISODateTime(startDate), timeZone: HOME_TZ};
+    body.end = {dateTime: toLocalISODateTime(endDate), timeZone: HOME_TZ};
+  }
+
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  try{
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${gAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      errEl.textContent = res.status===401
+        ? 'Google session expired — tap Reconnect in Settings, then try again.'
+        : 'Could not save the event. Try again.';
+      throw new Error('Event insert failed: '+res.status);
+    }
+    closeEventModal();
+    loadGoogleEvents();
+  }catch(err){ console.error(err); }
+  saveBtn.disabled = false; saveBtn.textContent = 'Save';
 }
 
 /* ================= WEATHER — live via Open-Meteo (no key needed) =================
@@ -763,12 +884,7 @@ function renderFullAgenda(){
   });
   panel.innerHTML = html;
 }
-function renderWeek(){
-  const weekGrid = document.getElementById('weekGrid');
-  if(!weekGrid) return;
-  const startOfWeek = addDays(today, -today.getDay() + weekOffset*7);
-  document.getElementById('weekLabel').textContent = weekOffset===0 ? 'This Week' :
-    (weekOffset>0 ? `${weekOffset} week${weekOffset>1?'s':''} ahead` : `${Math.abs(weekOffset)} week${Math.abs(weekOffset)>1?'s':''} ago`);
+function weekRowHTML(startOfWeek){
   let html = '';
   for(let i=0;i<7;i++){
     const d = addDays(startOfWeek,i);
@@ -788,8 +904,32 @@ function renderWeek(){
     }
     html += `</div>`;
   }
-  weekGrid.innerHTML = html;
+  return html;
+}
+function renderWeek(){
+  const weekGrid = document.getElementById('weekGrid');
+  if(!weekGrid) return;
+  const startOfWeek = addDays(today, -today.getDay() + weekOffset*7);
+  document.getElementById('weekLabel').textContent = weekOffset===0 ? 'This Week' :
+    (weekOffset>0 ? `${weekOffset} week${weekOffset>1?'s':''} ahead` : `${Math.abs(weekOffset)} week${Math.abs(weekOffset)>1?'s':''} ago`);
+  weekGrid.innerHTML = weekRowHTML(startOfWeek);
   renderFullAgenda();
+  renderLookahead(); // cheap enough to keep in sync unconditionally, whether or not it's the visible tab
+}
+// "Next 4 Weeks" — a separate planning-ahead view, always rolling from the
+// current week (no paging, unlike the single-week grid above).
+function renderLookahead(){
+  const wrap = document.getElementById('lookaheadView');
+  if(!wrap) return;
+  const thisWeekStart = addDays(today, -today.getDay());
+  let html = '';
+  for(let w=0; w<4; w++){
+    const startOfWeek = addDays(thisWeekStart, w*7);
+    const endOfWeek = addDays(startOfWeek, 6);
+    const label = `${startOfWeek.toLocaleDateString('en-US',{month:'short', day:'numeric'})} – ${endOfWeek.toLocaleDateString('en-US',{month:'short', day:'numeric'})}`;
+    html += `<div class="lookahead-week"><div class="lookahead-label">${w===0?'This Week':label}</div><div class="week-grid">${weekRowHTML(startOfWeek)}</div></div>`;
+  }
+  wrap.innerHTML = html;
 }
 function renderTasksMini(){
   const open = tasks.filter(t=>!t.done).slice(0,4);
@@ -1183,6 +1323,22 @@ document.getElementById('photosFileInput').addEventListener('change', e=>{
   if(e.target.files.length) uploadPhotos(e.target.files);
   e.target.value = '';
 });
+document.querySelectorAll('.view-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.view-tab').forEach(b=>b.classList.toggle('active', b===btn));
+    const view = btn.dataset.calview;
+    document.getElementById('weekView').style.display = view==='week' ? 'block' : 'none';
+    document.getElementById('lookaheadView').style.display = view==='lookahead' ? 'block' : 'none';
+  });
+});
+document.getElementById('evPerson').innerHTML = `<option value="">—</option>` + family.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+document.getElementById('addEventBtn').addEventListener('click', openEventModal);
+document.getElementById('evCancelBtn').addEventListener('click', closeEventModal);
+document.getElementById('eventModalOverlay').addEventListener('click', e=>{ if(e.target.id==='eventModalOverlay') closeEventModal(); });
+document.getElementById('evAllDay').addEventListener('change', e=>{
+  document.getElementById('evTimeRow').style.display = e.target.checked ? 'none' : 'block';
+});
+document.getElementById('evSaveBtn').addEventListener('click', saveEvent);
 
 /* ================= INIT ================= */
 switchPage('home');

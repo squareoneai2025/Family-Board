@@ -46,11 +46,13 @@
   .topbar .datetime{font-family:'Poppins'; font-weight:600; font-size:18px;}
   .topbar .weather{display:flex; align-items:center; gap:6px; color:var(--ink-soft); font-weight:500; font-size:14px;}
   .topbar .weather .ic{font-size:18px;}
-  .filters{display:flex; gap:8px; margin-left:auto;}
+  .filters{display:flex; gap:8px;}
   .fchip{width:34px; height:34px; border-radius:50%; border:2px solid transparent; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Poppins'; font-weight:600; font-size:13px; cursor:pointer; transition:opacity .15s ease, border-color .15s ease, transform .1s ease;}
   .fchip:active{transform:scale(0.92);}
   .filters.filtering .fchip:not(.selected){opacity:0.3;}
   .fchip.selected{border-color:var(--ink);}
+  .cal-filter-bar{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+  .cal-filter-bar .flabel{font-size:12px; font-weight:600; color:var(--ink-soft);}
 
   .content{flex:1; overflow-y:auto; padding:24px 26px 40px;}
   h1.page-title{font-family:'Poppins'; font-size:20px; font-weight:700; margin:0 0 16px;}
@@ -122,19 +124,26 @@
   .star-toggle{display:flex; gap:3px; flex-shrink:0;}
   .star-btn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:0 8px; font-size:11px; font-weight:700; color:var(--ink-soft); cursor:pointer;}
   .star-btn.active{background:var(--gold); color:#fff; border-color:var(--gold);}
+  .clear-btn{display:block; margin:2px 0 10px; border:none; background:none; color:var(--ink-soft); font-size:11px; font-weight:600; cursor:pointer; padding:2px 0; text-decoration:underline;}
+  .clear-btn:hover{color:var(--coral);}
 
   .rewards-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:16px;}
   .reward-card{text-align:center; padding:22px 16px;}
   .reward-card .av{width:56px; height:56px; border-radius:50%; color:#fff; font-family:'Poppins'; font-weight:700; font-size:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;}
   .reward-card .nm{font-family:'Poppins'; font-weight:700; font-size:15px; margin-bottom:4px;}
+  .reward-card .bank{font-size:13px; font-weight:700; color:var(--gold); margin-bottom:10px;}
   .reward-card .stars-count{font-size:26px; font-weight:700; margin:8px 0 4px; font-family:'Poppins';}
   .reward-card .goal{font-size:12px; color:var(--ink-soft); margin-bottom:12px;}
   .bar-track{height:8px; background:var(--line); border-radius:999px; overflow:hidden;}
   .bar-fill{height:100%; background:var(--gold); border-radius:999px; transition:width .2s ease;}
+  .redeem-btn{margin-top:14px; border:none; background:var(--gold); color:#fff; border-radius:8px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter';}
+  .redeem-btn:disabled{background:var(--line); color:var(--ink-soft); cursor:default;}
 
   .lists-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:18px; align-items:start;}
   .list-col{border-radius:18px; padding:16px; background:var(--peach);}
   .list-col.lavender{background:var(--lavender);}
+  .list-col.mint{background:var(--mint);}
+  .list-col.rose{background:var(--rose);}
   .list-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
   .list-head .nm{font-family:'Poppins'; font-weight:700; font-size:15px;}
   .list-head .cnt{width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.75); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
@@ -170,6 +179,21 @@
   .settings-row .av{width:32px; height:32px; border-radius:50%; color:#fff; font-family:'Poppins'; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
   .settings-row .lbl{font-weight:600; font-size:13.5px;}
   .settings-row .val{margin-left:auto; color:var(--ink-soft); font-size:12.5px; text-align:right;}
+  .settings-row input[type=text]{border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px; flex:1; min-width:0;}
+  .settings-row input[type=time]{border:1px solid var(--line); border-radius:8px; padding:6px 8px; font-family:'Inter'; font-size:13px;}
+  .swatch-row{display:flex; gap:6px; margin-left:auto;}
+  .swatch{width:22px; height:22px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex-shrink:0;}
+  .swatch.selected{border-color:var(--ink); transform:scale(1.1);}
+  .toggle-switch{position:relative; width:42px; height:24px; flex-shrink:0; cursor:pointer;}
+  .toggle-switch input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;}
+  .toggle-switch .track{position:absolute; inset:0; background:var(--line); border-radius:999px; transition:background .15s ease;}
+  .toggle-switch .track::after{content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+  .toggle-switch input:checked + .track{background:var(--accent);}
+  .toggle-switch input:checked + .track::after{transform:translateX(18px);}
+
+  .sleep-overlay{position:fixed; inset:0; background:#000; z-index:2000; display:none; align-items:center; justify-content:center; flex-direction:column; color:#3a3a3a; cursor:pointer;}
+  .sleep-overlay .clk{font-family:'Poppins'; font-size:15vw; font-weight:600;}
+  .sleep-overlay .dt{font-size:4vw; margin-top:4px;}
 
   @media (max-width:760px){
     .shell{flex-direction:column;}
@@ -195,12 +219,18 @@
   </div>
 </div>
 
+<div class="sleep-overlay" id="sleepOverlay">
+  <div class="clk" id="sleepClock">--:--</div>
+  <div class="dt" id="sleepDate"></div>
+</div>
+
 <div class="shell">
 
   <aside class="sidebar">
     <div class="brand">F</div>
     <nav class="navlist" id="navlist">
-      <button class="navbtn active" data-page="calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span>Calendar</span></button>
+      <button class="navbtn active" data-page="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg><span>Home</span></button>
+      <button class="navbtn" data-page="calendar"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span>Calendar</span></button>
       <button class="navbtn" data-page="tasks"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 12l3 3 7-7"/></svg><span>Tasks</span></button>
       <button class="navbtn" data-page="rewards"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.5 6.8-6.2-3.6-6.2 3.6 1.5-6.8-5.1-4.6 6.9-.7z"/></svg><span>Rewards</span></button>
       <button class="navbtn" data-page="meals"><svg viewBox="0 0 24 24"><path d="M7 2v8M5 2v5a2 2 0 002 2 2 2 0 002-2V2M17 2c-2 1-3 3-3 6s1 5 3 6M17 2v20"/></svg><span>Meals</span></button>
@@ -216,12 +246,11 @@
     <header class="topbar">
       <div class="datetime" id="dateSub">—</div>
       <div class="weather" id="weatherChip"><span class="ic">⏳</span><span>Loading weather…</span></div>
-      <div class="filters" id="filters"></div>
     </header>
 
     <main class="content" id="pages">
 
-      <section class="page" id="page-calendar">
+      <section class="page" id="page-home">
         <div class="gcal-banner" id="gcalBanner">
           <span>Connect Google Calendar to show real events for smittyfamilyct@gmail.com.</span>
           <button id="gcalBannerBtn">Connect</button>
@@ -236,6 +265,14 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <section class="page" id="page-calendar">
+        <div class="cal-filter-bar">
+          <span class="flabel">Filter:</span>
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="card" id="agendaPanelFull"></div>
         <div class="card" style="margin-top:16px;">
           <div class="cal-controls"><button id="prevWeek">←</button><span class="label" id="weekLabel">This Week</span><button id="nextWeek">→</button></div>
           <div class="week-grid" id="weekGrid"></div>
@@ -258,8 +295,12 @@
       </section>
 
       <section class="page" id="page-photos">
-        <h1 class="page-title">Photos</h1>
-        <img class="hero-photo" id="heroPhoto" src="" alt="Family photo">
+        <h1 class="page-title">Photos
+          <button id="photosAddBtn" style="float:right; border:none; background:var(--accent); color:#fff; border-radius:8px; padding:8px 16px; font-weight:700; font-size:12.5px; cursor:pointer; font-family:'Inter';">+ Add Photos</button>
+          <input type="file" id="photosFileInput" accept="image/*" multiple style="display:none;">
+        </h1>
+        <div id="photosEmpty" class="card empty-state" style="display:none;">No photos yet — tap Add Photos to upload some.</div>
+        <img class="hero-photo" id="heroPhoto" src="" alt="Family photo" style="display:none;">
         <div class="strip" id="photoStrip"></div>
       </section>
 
@@ -270,7 +311,16 @@
 
       <section class="page" id="page-sleep">
         <h1 class="page-title">Sleep</h1>
-        <div class="card"><div class="empty-state">Not set up yet — let's decide what this should do before I build it.</div></div>
+        <div class="card">
+          <h3>Screen Schedule</h3>
+          <div class="settings-row">
+            <span class="lbl">Enable schedule</span>
+            <label class="toggle-switch" style="margin-left:auto;"><input type="checkbox" id="sleepEnabled"><span class="track"></span></label>
+          </div>
+          <div class="settings-row"><span class="lbl">Sleep at</span><input type="time" id="sleepStart" style="margin-left:auto;"></div>
+          <div class="settings-row"><span class="lbl">Wake at</span><input type="time" id="sleepEnd" style="margin-left:auto;"></div>
+          <div class="empty-state" style="padding:14px 4px 0; text-align:left;">The screen goes black during these hours (an iPad can't dim its own backlight from a web page — this is the closest equivalent). Tap the black screen anytime to wake it early; it'll go back to sleep after a short pause if still inside the window.</div>
+        </div>
       </section>
 
       <section class="page" id="page-settings">
@@ -281,6 +331,10 @@
             <span class="val" id="gcalSettingsStatus">Not connected</span>
             <button id="gcalConnectBtn" style="margin-left:12px; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 14px; font-size:12.5px; cursor:pointer; font-family:'Inter';">Connect</button>
           </div>
+        </div>
+        <div class="card" style="margin-top:16px;"><h3>Event Colors</h3>
+          <div class="empty-state" style="padding:0 0 12px; text-align:left;">Color-code events in Google Calendar itself, then map each color to a family member here — the Calendar page's filter chips will match on it.</div>
+          <div class="settings-list" id="settingsEventColors"></div>
         </div>
         <div class="card" style="margin-top:16px;"><h3>Account</h3>
           <div class="settings-row"><span class="lbl">Household login</span>
@@ -297,6 +351,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, listAll, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 /* ================= FIREBASE AUTH (household login) =================
    Fill these in from Firebase Console > Project settings > General > Your apps.
@@ -327,6 +382,8 @@ const auth = getAuth(fbApp);
    back, so every signed-in device converges on the same state. */
 const db = getFirestore(fbApp);
 const STATE_DOC = doc(db, 'household', 'state');
+const storage = getStorage(fbApp);
+const PHOTOS_PATH = 'photos';
 let firestoreUnsub = null;
 
 function subscribeState(){
@@ -337,7 +394,12 @@ function subscribeState(){
       tasks = data.tasks || [];
       lists = data.lists || lists;
       meals = data.meals || {};
+      rewards = data.rewards || rewards;
+      eventColorMap = data.eventColorMap || eventColorMap;
+      sleepSchedule = data.sleepSchedule || sleepSchedule;
       renderTasks(); renderTasksMini(); renderRewards(); renderLists(); renderMeals();
+      renderSettingsEventColors(); renderSleepControls();
+      renderAgenda(); renderWeek();
     }else{
       saveState(); // first run ever — seed the doc with current (empty) defaults
     }
@@ -347,7 +409,7 @@ function unsubscribeState(){
   if(firestoreUnsub){ firestoreUnsub(); firestoreUnsub = null; }
 }
 function saveState(){
-  setDoc(STATE_DOC, { tasks, lists, meals }).catch(err=>console.error('Save failed', err));
+  setDoc(STATE_DOC, { tasks, lists, meals, rewards, eventColorMap, sleepSchedule }).catch(err=>console.error('Save failed', err));
 }
 
 onAuthStateChanged(auth, user=>{
@@ -391,15 +453,21 @@ const events = [
   {offset:6, time:'11:00 AM', title:'Farmers market',         person:'mom'}
 ];
 
-/* ================= TASKS — starts empty, add-as-you-go, must be assigned ================= */
-let tasks = []; // {id, text, person, done, stars} — id is crypto.randomUUID()
+/* ================= TASKS — starts empty, add-as-you-go, must be assigned =================
+   task.rewarded tracks whether a task has ever credited stars to the rewards
+   ledger — set once on first completion, never cleared, so re-checking a box
+   (or clearing/deleting the task afterward) can never double-credit or claw
+   back stars. See REWARDS below for where the credit actually lands. */
+let tasks = []; // {id, text, person, done, stars, rewarded} — id is crypto.randomUUID()
 let pendingStars = {}; // per-person star value currently selected in the add-row, defaults to 1 — local UI-only, not persisted
 family.forEach(f=>pendingStars[f.id]=1);
 
 /* ================= LISTS — starts empty, add-as-you-go ================= */
 let lists = {
-  grocery: {name:'Grocery List', color:'peach', items:[]},
-  errands: {name:'Errands',      color:'lavender', items:[]}
+  grocery:   {name:'Grocery List', color:'peach',    items:[]},
+  errands:   {name:'Errands',      color:'lavender', items:[]},
+  tobuy:     {name:'To Buy',       color:'mint',      items:[]},
+  reminders: {name:'Reminders',    color:'rose',      items:[]}
 };
 
 /* ================= MEALS — starts empty, + to add lunch/dinner per day =================
@@ -408,7 +476,24 @@ let lists = {
    instead of sliding to a different real date as "today" advances. */
 let meals = {}; // meals[dateKey] = {lunch:[...], dinner:[...]}
 
+/* ================= REWARDS — persisted ledger, independent of the task list =================
+   Stars are credited the moment a task is checked done (see renderTasks), not
+   recomputed live from the tasks array — that's deliberate, so archiving or
+   deleting a completed task later never changes what's already been earned.
+   level = progress toward the next bank credit (0..REWARD_GOAL-1).
+   bank  = redeemable rewards earned so far; Redeem on the Rewards page -1's it. */
 const REWARD_GOAL = 5;
+let rewards = {};
+family.forEach(f=>rewards[f.id]={level:0, bank:0});
+
+/* ================= SLEEP SCHEDULE — persisted, drives the black overlay below ================= */
+let sleepSchedule = {enabled:false, start:'21:00', end:'07:00'};
+
+/* ================= PHOTOS — manual upload to Firebase Storage =================
+   Storage itself is the source of truth (listAll on the 'photos/' path), so
+   unlike tasks/lists/meals this isn't mirrored into the Firestore state doc —
+   nothing to reconcile, every device just lists the same bucket. */
+let photosMedia = []; // [{path, url}], newest first
 
 /* ================= GOOGLE CALENDAR SYNC =================
    Client-side only, read-only, no backend. Sign in as smittyfamilyct@gmail.com
@@ -422,17 +507,41 @@ const GOOGLE_CLIENT_ID = '179459083003-n1blskaj5bdfaul7igbtpuvrsk25v49e.apps.goo
 const GOOGLE_CALENDAR_ID = 'primary'; // primary calendar of whichever account authorizes
 const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 
+// Google Calendar's fixed 11-color event palette (colorId -> name/hex). Public,
+// stable values from Google's own colorId reference — not account-specific.
+const GOOGLE_EVENT_COLORS = {
+  '1':{name:'Lavender', hex:'#7986CB'}, '2':{name:'Sage',    hex:'#33B679'},
+  '3':{name:'Grape',    hex:'#8E24AA'}, '4':{name:'Flamingo',hex:'#E67C73'},
+  '5':{name:'Banana',   hex:'#F6BF26'}, '6':{name:'Tangerine',hex:'#F4511E'},
+  '7':{name:'Peacock',  hex:'#039BE5'}, '8':{name:'Graphite',hex:'#616161'},
+  '9':{name:'Blueberry',hex:'#3F51B5'}, '10':{name:'Basil',  hex:'#0B8043'},
+  '11':{name:'Tomato',  hex:'#D50000'}
+};
+// Family member id -> Google event colorId, so real Google events can be
+// filtered/colored per person. Edited from Settings > Event Colors.
+let eventColorMap = {};
+
 let gTokenClient = null;
 let gAccessToken = null;
 let gTokenExpiresAt = 0;
 let gCalendarConnected = false;
 let gRenewTimer = null;
-let googleEvents = []; // normalized: {dateKey:'YYYY-MM-DD', time, sortKey, title, loc}
+let googleEvents = []; // normalized: {dateKey:'YYYY-MM-DD', time, sortKey, title, loc, colorId}
 
 function dateKeyFor(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function eventsForDate(d){
   const key = dateKeyFor(d);
   return googleEvents.filter(e=>e.dateKey===key).sort((a,b)=>a.sortKey.localeCompare(b.sortKey));
+}
+function personForColorId(colorId){
+  if(!colorId) return null;
+  const pid = Object.keys(eventColorMap).find(p=>eventColorMap[p]===colorId);
+  return pid ? famById[pid] : null;
+}
+function passesColorFilter(colorId){
+  if(activeFilters.size===0) return true;
+  const f = personForColorId(colorId);
+  return f ? activeFilters.has(f.id) : false;
 }
 
 function initGoogleAuth(){
@@ -491,7 +600,8 @@ async function loadGoogleEvents(){
         dateKey: allDay ? ev.start.date : dateKeyFor(d),
         time, sortKey,
         title: ev.summary || '(untitled event)',
-        loc: ev.location || ''
+        loc: ev.location || '',
+        colorId: ev.colorId || null
       };
     });
     renderAgenda(); renderWeek();
@@ -511,13 +621,14 @@ function renderCalendarConnectionUI(){
 const HOME_LAT = 41.209, HOME_LON = -73.442, HOME_TZ = 'America/New_York';
 let weatherData = null;
 
-const photoSeeds = ['fam-101','fam-102','fam-103','fam-104','fam-105','fam-106','fam-107','fam-108'];
-const img = (seed,w,h)=>`https://picsum.photos/seed/${seed}/${w}/${h}`;
-
 /* ================= STATE ================= */
 let activeFilters = new Set();
 let weekOffset = 0;
-const today = new Date();
+// `today` is deliberately mutable — see checkDateRollover() below. This is a
+// wall-mounted display that stays open for days; if `today` were a const
+// captured once at load, "Today"/"Tomorrow" labels (agenda, week grid, meals)
+// would silently go stale after midnight until someone force-reloads the tab.
+let today = new Date();
 
 /* ================= HELPERS ================= */
 function addDays(base,n){const d=new Date(base); d.setDate(d.getDate()+n); return d;}
@@ -525,6 +636,14 @@ function sameDay(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()==
 function dateForOffset(o){return addDays(today,o);}
 function passesFilter(person){return activeFilters.size===0 || activeFilters.has(person);}
 function esc(s){return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function checkDateRollover(){
+  const now = new Date();
+  if(!sameDay(now, today)){
+    today = now;
+    renderAgenda(); renderWeek(); renderMeals();
+    if(gCalendarConnected) loadGoogleEvents(); // its date range is anchored to `today`
+  }
+}
 
 /* ================= TOP BAR ================= */
 function renderTopbar(){
@@ -543,7 +662,7 @@ function renderFilters(){
       if(activeFilters.has(p)) activeFilters.delete(p); else activeFilters.add(p);
       wrap.classList.toggle('filtering', activeFilters.size>0);
       btn.classList.toggle('selected', activeFilters.has(p));
-      renderAgenda(); renderWeek();
+      renderWeek(); // also re-renders the full agenda
     });
   });
 }
@@ -581,19 +700,48 @@ function renderWeatherStrip(){
   document.getElementById('weatherStrip').innerHTML = html;
 }
 
-/* ================= CALENDAR: agenda + week ================= */
+/* ================= CALENDAR: agenda + week =================
+   renderAgenda() is the small "Today" preview on Home (unfiltered — a quick
+   glance, not the place to be picking through per-person filters). renderWeek
+   feeds the Calendar page's full week grid, and DOES respect activeFilters —
+   that's the only place filters live now. Google events (when connected) are
+   colored/filtered by mapping their colorId through eventColorMap; unmapped
+   colors show neutral and are hidden once any specific person is filtered on. */
+function connectedDotStyle(colorId){
+  const f = personForColorId(colorId);
+  return f ? `--c:${f.hex}` : `--c:var(--ink-soft)`;
+}
 function renderAgenda(){
   const panel = document.getElementById('agendaPanel');
+  if(!panel) return;
+  let dayEvents = gCalendarConnected ? eventsForDate(today) : events.filter(e=>e.offset===0).sort((a,b)=>a.time.localeCompare(b.time));
+  let html = `<h3>Today <a data-goto="calendar">Full week →</a></h3>`;
+  if(dayEvents.length===0){ html += `<div class="empty-state" style="padding:14px 0;">Nothing on the calendar.</div>`; }
+  else if(gCalendarConnected){
+    dayEvents.forEach(e=>{
+      html += `<div class="row-item" style="${connectedDotStyle(e.colorId)}"><div class="dot">🗓</div><div class="txt"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span>${e.loc?`<span class="loc">${esc(e.loc)}</span>`:''}</div></div>`;
+    });
+  }else{
+    dayEvents.forEach(e=>{
+      const f = famById[e.person];
+      html += `<div class="row-item" style="--c:${f.hex}"><div class="dot">${f.name[0]}</div><div class="txt"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span>${e.loc?`<span class="loc">${esc(e.loc)}</span>`:''}</div></div>`;
+    });
+  }
+  panel.innerHTML = html;
+}
+function renderFullAgenda(){
+  const panel = document.getElementById('agendaPanelFull');
+  if(!panel) return;
   const groups = [
     {label:'Today', offset:0}, {label:'Tomorrow', offset:1},
     {label: dateForOffset(2).toLocaleDateString('en-US',{weekday:'long'}), offset:2}
   ];
-  let html = `<h3>This Week <a data-goto="calendar">Full week →</a></h3>`;
+  let html = `<h3>Agenda</h3>`;
   groups.forEach(g=>{
     const date = dateForOffset(g.offset);
     let dayEvents;
     if(gCalendarConnected){
-      dayEvents = eventsForDate(date);
+      dayEvents = eventsForDate(date).filter(e=>passesColorFilter(e.colorId));
     }else{
       dayEvents = events.filter(e=>e.offset===g.offset && passesFilter(e.person)).sort((a,b)=>a.time.localeCompare(b.time));
     }
@@ -601,7 +749,7 @@ function renderAgenda(){
     if(dayEvents.length===0){ html += `<div class="empty-state" style="padding:14px 0;">Nothing on the calendar.</div>`; }
     else if(gCalendarConnected){
       dayEvents.forEach(e=>{
-        html += `<div class="row-item" style="--c:var(--ink-soft)"><div class="dot">🗓</div><div class="txt"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span>${e.loc?`<span class="loc">${esc(e.loc)}</span>`:''}</div></div>`;
+        html += `<div class="row-item" style="${connectedDotStyle(e.colorId)}"><div class="dot">🗓</div><div class="txt"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span>${e.loc?`<span class="loc">${esc(e.loc)}</span>`:''}</div></div>`;
       });
     }else{
       dayEvents.forEach(e=>{
@@ -614,6 +762,8 @@ function renderAgenda(){
   panel.innerHTML = html;
 }
 function renderWeek(){
+  const weekGrid = document.getElementById('weekGrid');
+  if(!weekGrid) return;
   const startOfWeek = addDays(today, -today.getDay() + weekOffset*7);
   document.getElementById('weekLabel').textContent = weekOffset===0 ? 'This Week' :
     (weekOffset>0 ? `${weekOffset} week${weekOffset>1?'s':''} ahead` : `${Math.abs(weekOffset)} week${Math.abs(weekOffset)>1?'s':''} ago`);
@@ -623,20 +773,21 @@ function renderWeek(){
     const isToday = sameDay(d,today);
     let dayEvents;
     if(gCalendarConnected){
-      dayEvents = eventsForDate(d);
+      dayEvents = eventsForDate(d).filter(e=>passesColorFilter(e.colorId));
     }else{
       dayEvents = events.filter(e=>sameDay(dateForOffset(e.offset), d) && passesFilter(e.person)).sort((a,b)=>a.time.localeCompare(b.time));
     }
     html += `<div class="day-col ${isToday?'today':''}"><div class="dhead"><div class="dn">${d.toLocaleDateString('en-US',{weekday:'short'})}</div><div class="dd">${d.getDate()}</div></div>`;
     if(dayEvents.length===0){ html += `<div class="empty-state" style="padding:10px 0; font-size:11px;">—</div>`; }
     else if(gCalendarConnected){
-      dayEvents.forEach(e=>{ html += `<div class="chip" style="--c:var(--ink-soft)"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span></div>`; });
+      dayEvents.forEach(e=>{ html += `<div class="chip" style="${connectedDotStyle(e.colorId)}"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span></div>`; });
     }else{
       dayEvents.forEach(e=>{ const f=famById[e.person]; html += `<div class="chip" style="--c:${f.hex}"><span class="time">${e.time}</span><span class="title">${esc(e.title)}</span></div>`; });
     }
     html += `</div>`;
   }
-  document.getElementById('weekGrid').innerHTML = html;
+  weekGrid.innerHTML = html;
+  renderFullAgenda();
 }
 function renderTasksMini(){
   const open = tasks.filter(t=>!t.done).slice(0,4);
@@ -648,17 +799,26 @@ function renderTasksMini(){
   }).join('');
 }
 function renderPreviews(){
-  document.getElementById('photoPreview').innerHTML = photoSeeds.slice(0,4).map(s=>`<img src="${img(s,120,90)}" alt="">`).join('');
+  const wrap = document.getElementById('photoPreview');
+  if(photosMedia.length===0){ wrap.innerHTML = `<div class="empty-state" style="padding:10px 0; font-size:12px;">No photos yet.</div>`; return; }
+  wrap.innerHTML = photosMedia.slice(0,4).map(p=>`<img src="${p.url}" alt="">`).join('');
 }
 
 /* ================= TASKS PAGE ================= */
+function creditStars(personId, stars){
+  const r = rewards[personId] || (rewards[personId] = {level:0, bank:0});
+  r.level += stars;
+  while(r.level >= REWARD_GOAL){ r.level -= REWARD_GOAL; r.bank += 1; }
+}
 function renderTasks(){
   document.getElementById('todoGrid').innerHTML = family.map(f=>{
     const list = tasks.filter(t=>t.person===f.id);
+    const doneCount = list.filter(t=>t.done).length;
     return `<div>
       <div class="col-head"><div class="mag" style="background:${f.hex}">${f.name[0]}</div><div><span class="nm">${f.name}</span></div></div>
       ${list.length===0 ? `<div class="empty-state" style="padding:14px 4px; font-size:12.5px;">No tasks yet</div>` : ''}
       ${list.map(t=>`<div class="task-row ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} data-task="${t.id}" class="task-check"><label>${esc(t.text)}</label><span class="st">${'★'.repeat(t.stars)}</span><button class="del" data-del-task="${t.id}">×</button></div>`).join('')}
+      ${doneCount>0 ? `<button class="clear-btn" data-clear-tasks="${f.id}">Clear completed (${doneCount})</button>` : ''}
       <div class="add-row">
         <input type="text" placeholder="Add task…" data-add-task="${f.id}">
         <div class="star-toggle" data-star-group="${f.id}">
@@ -673,13 +833,26 @@ function renderTasks(){
   document.querySelectorAll('.task-check').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       const t = tasks.find(x=>x.id==cb.dataset.task);
-      if(t){ t.done = cb.checked; renderTasks(); renderTasksMini(); renderRewards(); saveState(); }
+      if(t){
+        t.done = cb.checked;
+        if(t.done && !t.rewarded){ creditStars(t.person, t.stars); t.rewarded = true; }
+        renderTasks(); renderTasksMini(); renderRewards(); saveState();
+      }
     });
   });
   document.querySelectorAll('[data-del-task]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tasks = tasks.filter(t=>t.id != btn.dataset.delTask);
       renderTasks(); renderTasksMini(); renderRewards(); saveState();
+    });
+  });
+  document.querySelectorAll('[data-clear-tasks]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pid = btn.dataset.clearTasks;
+      const n = tasks.filter(t=>t.person===pid && t.done).length;
+      if(!confirm(`Clear ${n} completed task${n>1?'s':''} for ${famById[pid].name}? Stars already earned stay banked.`)) return;
+      tasks = tasks.filter(t=>!(t.person===pid && t.done));
+      renderTasks(); renderTasksMini(); saveState();
     });
   });
   document.querySelectorAll('.star-btn').forEach(btn=>{
@@ -692,7 +865,7 @@ function renderTasks(){
   function addTaskFor(pid, input){
     const val = input.value.trim();
     if(!val) return;
-    tasks.push({id:crypto.randomUUID(), text:val, person:pid, done:false, stars:pendingStars[pid]||1});
+    tasks.push({id:crypto.randomUUID(), text:val, person:pid, done:false, stars:pendingStars[pid]||1, rewarded:false});
     input.value='';
     renderTasks(); renderTasksMini(); renderRewards(); saveState();
   }
@@ -707,31 +880,50 @@ function renderTasks(){
   });
 }
 
-/* ================= REWARDS ================= */
+/* ================= REWARDS =================
+   level/bank read straight from the persisted `rewards` ledger — never
+   recomputed from the tasks array, so archiving/deleting a completed task
+   can't change what's already been earned. See creditStars() above. */
 function renderRewards(){
   document.getElementById('rewardsGrid').innerHTML = family.map(f=>{
-    const stars = tasks.filter(t=>t.person===f.id && t.done).reduce((sum,t)=>sum+t.stars,0);
-    const pct = Math.min(100, Math.round(stars/REWARD_GOAL*100));
+    const r = rewards[f.id] || {level:0, bank:0};
+    const pct = Math.round(r.level/REWARD_GOAL*100);
     return `<div class="card reward-card">
       <div class="av" style="background:${f.hex}">${f.name[0]}</div>
       <div class="nm">${f.name}</div>
-      <div class="stars-count">${stars} ★</div>
-      <div class="goal">${stars}/${REWARD_GOAL} toward next reward</div>
+      <div class="bank">🎁 ${r.bank} banked</div>
+      <div class="stars-count">${r.level} ★</div>
+      <div class="goal">${r.level}/${REWARD_GOAL} toward next reward</div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <button class="redeem-btn" data-redeem="${f.id}" ${r.bank<=0?'disabled':''}>Redeem</button>
     </div>`;
   }).join('');
+
+  document.querySelectorAll('[data-redeem]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pid = btn.dataset.redeem;
+      const f = famById[pid];
+      if(!confirm(`Redeem 1 reward for ${f.name}? This removes it from their bank.`)) return;
+      rewards[pid].bank = Math.max(0, rewards[pid].bank - 1);
+      renderRewards(); saveState();
+    });
+  });
 }
 
 /* ================= LISTS PAGE ================= */
 function renderLists(){
-  document.getElementById('listsGrid').innerHTML = Object.entries(lists).map(([key,l])=>`
+  document.getElementById('listsGrid').innerHTML = Object.entries(lists).map(([key,l])=>{
+    const doneCount = l.items.filter(it=>it.done).length;
+    return `
     <div class="list-col ${l.color}">
       <div class="list-head"><span class="nm">${l.name}</span><span class="cnt">${l.items.length}</span></div>
       ${l.items.length===0 ? `<div class="empty-state" style="padding:10px 4px; font-size:12.5px;">Nothing here yet</div>` : ''}
       ${l.items.map(it=>`<div class="list-row ${it.done?'done':''}"><input type="checkbox" ${it.done?'checked':''} data-list-check="${key}:${it.id}"><label>${esc(it.text)}</label><button class="del" data-list-del="${key}:${it.id}">×</button></div>`).join('')}
+      ${doneCount>0 ? `<button class="clear-btn" data-list-clear="${key}">Clear completed (${doneCount})</button>` : ''}
       <div class="add-row"><input type="text" placeholder="Add item…" data-list-add="${key}"><button data-list-add-btn="${key}">+</button></div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   document.querySelectorAll('[data-list-check]').forEach(cb=>{
     cb.addEventListener('change', ()=>{
@@ -744,6 +936,15 @@ function renderLists(){
     btn.addEventListener('click', ()=>{
       const [key,id] = btn.dataset.listDel.split(':');
       lists[key].items = lists[key].items.filter(x=>String(x.id)!==id);
+      renderLists(); saveState();
+    });
+  });
+  document.querySelectorAll('[data-list-clear]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.listClear;
+      const n = lists[key].items.filter(it=>it.done).length;
+      if(!confirm(`Clear ${n} completed item${n>1?'s':''} from ${lists[key].name}?`)) return;
+      lists[key].items = lists[key].items.filter(it=>!it.done);
       renderLists(); saveState();
     });
   });
@@ -827,17 +1028,58 @@ function renderMeals(){
   });
 }
 
-/* ================= PHOTOS ================= */
+/* ================= PHOTOS — manual upload to Firebase Storage ================= */
+async function loadPhotos(){
+  try{
+    const res = await listAll(storageRef(storage, PHOTOS_PATH));
+    const items = await Promise.all(res.items.map(async item=>({
+      path: item.fullPath,
+      url: await getDownloadURL(item)
+    })));
+    items.sort((a,b)=>b.path.localeCompare(a.path)); // filenames are timestamp-prefixed — newest first
+    photosMedia = items;
+  }catch(err){ console.error('Photo list failed', err); }
+  renderPhotos(); renderPreviews();
+}
+async function uploadPhotos(fileList){
+  const files = Array.from(fileList).filter(f=>f.type.startsWith('image/'));
+  for(const file of files){
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${PHOTOS_PATH}/${Date.now()}_${crypto.randomUUID()}.${ext}`;
+    try{ await uploadBytes(storageRef(storage, path), file); }
+    catch(err){ console.error('Photo upload failed', err); }
+  }
+  loadPhotos();
+}
+function deletePhoto(path){
+  if(!confirm('Delete this photo? This can\'t be undone.')) return;
+  deleteObject(storageRef(storage, path)).then(loadPhotos).catch(err=>console.error('Photo delete failed', err));
+}
 function renderPhotos(){
   const hero = document.getElementById('heroPhoto');
-  hero.src = img(photoSeeds[0],900,500);
-  document.getElementById('photoStrip').innerHTML = photoSeeds.map((s,i)=>`<img src="${img(s,200,150)}" data-seed="${s}" class="${i===0?'active':''}">`).join('');
+  const empty = document.getElementById('photosEmpty');
+  if(photosMedia.length===0){
+    hero.style.display = 'none'; empty.style.display = 'block';
+    document.getElementById('photoStrip').innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none'; hero.style.display = 'block';
+  hero.src = photosMedia[0].url;
+  document.getElementById('photoStrip').innerHTML = photosMedia.map((p,i)=>
+    `<div style="position:relative; flex-shrink:0;">
+      <img src="${p.url}" data-path="${esc(p.path)}" class="${i===0?'active':''}">
+      <button data-photo-del="${esc(p.path)}" style="position:absolute; top:-4px; right:-4px; width:18px; height:18px; border-radius:50%; border:none; background:var(--coral); color:#fff; font-size:11px; line-height:1; cursor:pointer;">×</button>
+    </div>`
+  ).join('');
   document.querySelectorAll('.strip img').forEach(el=>{
     el.addEventListener('click', ()=>{
-      hero.src = img(el.dataset.seed,900,500);
+      hero.src = photosMedia.find(p=>p.path===el.dataset.path).url;
       document.querySelectorAll('.strip img').forEach(x=>x.classList.remove('active'));
       el.classList.add('active');
     });
+  });
+  document.querySelectorAll('[data-photo-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation(); deletePhoto(btn.dataset.photoDel); });
   });
 }
 
@@ -847,6 +1089,81 @@ function renderSettings(){
     `<div class="settings-row"><div class="av" style="background:${f.hex}">${f.name[0]}</div><span class="lbl">${f.name}</span></div>`
   ).join('');
 }
+function renderSettingsEventColors(){
+  const wrap = document.getElementById('settingsEventColors');
+  if(!wrap) return;
+  wrap.innerHTML = family.map(f=>{
+    const selected = eventColorMap[f.id];
+    const swatches = Object.entries(GOOGLE_EVENT_COLORS).map(([id,c])=>
+      `<span class="swatch ${selected===id?'selected':''}" style="background:${c.hex}" data-color-person="${f.id}" data-color-id="${id}" title="${c.name}"></span>`
+    ).join('');
+    return `<div class="settings-row"><span class="lbl">${f.name}</span><div class="swatch-row">${swatches}</div></div>`;
+  }).join('');
+  wrap.querySelectorAll('.swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      eventColorMap[sw.dataset.colorPerson] = sw.dataset.colorId;
+      renderSettingsEventColors();
+      renderWeek(); // re-render calendar with new color mapping
+      saveState();
+    });
+  });
+}
+
+/* ================= SLEEP SCHEDULE =================
+   A web page can't dim the iPad's real backlight, only what's drawn on
+   screen — full black is the closest equivalent. Tapping the overlay wakes
+   it early; SLEEP_WAKE_GRACE_MS later it re-checks the schedule and goes
+   back to sleep if still inside the window (mirrors how the real device
+   wakes on touch and re-sleeps on its own). */
+const SLEEP_WAKE_GRACE_MS = 20000;
+let sleepWokenUntil = 0;
+
+function renderSleepControls(){
+  const enabledEl = document.getElementById('sleepEnabled');
+  const startEl = document.getElementById('sleepStart');
+  const endEl = document.getElementById('sleepEnd');
+  if(!enabledEl) return;
+  enabledEl.checked = !!sleepSchedule.enabled;
+  startEl.value = sleepSchedule.start;
+  endEl.value = sleepSchedule.end;
+}
+function isWithinSleepWindow(now){
+  const [sh,sm] = sleepSchedule.start.split(':').map(Number);
+  const [eh,em] = sleepSchedule.end.split(':').map(Number);
+  const mins = now.getHours()*60 + now.getMinutes();
+  const startMins = sh*60+sm, endMins = eh*60+em;
+  if(startMins === endMins) return false;
+  if(startMins < endMins) return mins >= startMins && mins < endMins; // same-day window
+  return mins >= startMins || mins < endMins; // wraps past midnight
+}
+function checkSleepState(){
+  const overlay = document.getElementById('sleepOverlay');
+  if(!sleepSchedule.enabled){ overlay.style.display = 'none'; return; }
+  const now = new Date();
+  if(Date.now() < sleepWokenUntil){ overlay.style.display = 'none'; return; }
+  if(isWithinSleepWindow(now)){
+    let h = now.getHours(), m = now.getMinutes();
+    const ap = h>=12?'PM':'AM'; h = h%12; if(h===0) h=12;
+    document.getElementById('sleepClock').textContent = `${h}:${String(m).padStart(2,'0')} ${ap}`;
+    document.getElementById('sleepDate').textContent = now.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'});
+    overlay.style.display = 'flex';
+  }else{
+    overlay.style.display = 'none';
+  }
+}
+document.getElementById('sleepOverlay').addEventListener('click', ()=>{
+  sleepWokenUntil = Date.now() + SLEEP_WAKE_GRACE_MS;
+  checkSleepState();
+});
+document.getElementById('sleepEnabled').addEventListener('change', e=>{
+  sleepSchedule.enabled = e.target.checked; saveState(); checkSleepState();
+});
+document.getElementById('sleepStart').addEventListener('change', e=>{
+  sleepSchedule.start = e.target.value; saveState(); checkSleepState();
+});
+document.getElementById('sleepEnd').addEventListener('change', e=>{
+  sleepSchedule.end = e.target.value; saveState(); checkSleepState();
+});
 
 /* ================= NAV ================= */
 function switchPage(id){
@@ -859,9 +1176,14 @@ document.getElementById('prevWeek').addEventListener('click', ()=>{weekOffset--;
 document.getElementById('nextWeek').addEventListener('click', ()=>{weekOffset++; renderWeek();});
 document.getElementById('gcalBannerBtn').addEventListener('click', connectGoogleCalendar);
 document.getElementById('gcalConnectBtn').addEventListener('click', connectGoogleCalendar);
+document.getElementById('photosAddBtn').addEventListener('click', ()=> document.getElementById('photosFileInput').click());
+document.getElementById('photosFileInput').addEventListener('change', e=>{
+  if(e.target.files.length) uploadPhotos(e.target.files);
+  e.target.value = '';
+});
 
 /* ================= INIT ================= */
-switchPage('calendar');
+switchPage('home');
 renderTopbar(); setInterval(renderTopbar,15000);
 renderFilters();
 renderAgenda();
@@ -872,12 +1194,17 @@ renderTasks();
 renderRewards();
 renderLists();
 renderMeals();
-renderPhotos();
+loadPhotos();
 renderSettings();
+renderSettingsEventColors();
+renderSleepControls();
 loadWeather(); setInterval(loadWeather, 15*60*1000); // refresh weather every 15 min
 renderCalendarConnectionUI();
 initGoogleAuth();
 setInterval(()=>{ if(gCalendarConnected) loadGoogleEvents(); }, 15*60*1000); // refresh events every 15 min
+setInterval(checkDateRollover, 60000); // catches midnight rollover without a manual reload
+setInterval(checkSleepState, 30000);
+checkSleepState();
 </script>
 </body>
 </html>

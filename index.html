@@ -299,7 +299,24 @@
       <section class="page" id="page-settings">
         <h1 class="page-title">Settings</h1>
         <div class="card"><h3>Household</h3><div class="settings-list" id="settingsFamily"></div></div>
-        <div class="card" style="margin-top:16px;"><h3>Cameras</h3><div class="settings-list" id="settingsCameras"></div></div>
+        <div class="card" style="margin-top:16px;"><h3>Cameras</h3>
+          <div class="settings-list" id="settingsCameras"></div>
+          <div id="cameraAddForm" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="camName" placeholder="Name (e.g. Front Door)" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
+              <input type="text" id="camIp" placeholder="Local IP (e.g. 192.168.1.50)" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
+            </div>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="camUser" placeholder="Username" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
+              <input type="password" id="camPass" placeholder="Password" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
+            </div>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="camPath" placeholder="Snapshot path" value="/cgi-bin/snapshot.cgi" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
+              <button id="camAddBtn" style="border:none; background:var(--accent); color:#fff; border-radius:8px; padding:0 16px; font-weight:700; font-size:13px; cursor:pointer;">Add Camera</button>
+            </div>
+            <div style="font-size:11.5px; color:var(--ink-soft); line-height:1.5;">Stored only in this browser's local storage — never written to the file or the GitHub repo. You'll need to add it again on any other device you view the board from.</div>
+          </div>
+        </div>
         <div class="card" style="margin-top:16px;"><h3>Google Calendar</h3>
           <div class="settings-row"><span class="lbl">smittyfamilyct@gmail.com</span>
             <span class="val" id="gcalSettingsStatus">Not connected</span>
@@ -320,6 +337,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 /* ================= FIREBASE AUTH (household login) =================
    Fill these in from Firebase Console > Project settings > General > Your apps.
@@ -341,9 +359,42 @@ const HOUSEHOLD_EMAIL = 'household@familyboard.local';
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 
+/* ================= FIRESTORE (persistence + multi-device sync) =================
+   Everything lives in one document — plenty for a household's worth of tasks,
+   lists, and a week of meals. All devices signed into the household account
+   subscribe to this doc, so a change on the wall iPad shows up on your phone
+   (and vice versa) within a second or two. Local mutations write to Firestore
+   immediately; the UI itself is always re-rendered from what Firestore sends
+   back, so every signed-in device converges on the same state. */
+const db = getFirestore(fbApp);
+const STATE_DOC = doc(db, 'household', 'state');
+let firestoreUnsub = null;
+
+function subscribeState(){
+  if(firestoreUnsub) return;
+  firestoreUnsub = onSnapshot(STATE_DOC, snap=>{
+    if(snap.exists()){
+      const data = snap.data();
+      tasks = data.tasks || [];
+      lists = data.lists || lists;
+      meals = data.meals || {};
+      renderTasks(); renderTasksMini(); renderRewards(); renderLists(); renderMeals();
+    }else{
+      saveState(); // first run ever — seed the doc with current (empty) defaults
+    }
+  }, err=>{ console.error('Firestore sync error', err); });
+}
+function unsubscribeState(){
+  if(firestoreUnsub){ firestoreUnsub(); firestoreUnsub = null; }
+}
+function saveState(){
+  setDoc(STATE_DOC, { tasks, lists, meals }).catch(err=>console.error('Save failed', err));
+}
+
 onAuthStateChanged(auth, user=>{
   document.getElementById('loginGate').style.display = user ? 'none' : 'flex';
   document.querySelector('.shell').style.display = user ? 'flex' : 'none';
+  if(user){ subscribeState(); } else { unsubscribeState(); }
 });
 
 document.getElementById('loginForm').addEventListener('submit', async e=>{
@@ -382,9 +433,8 @@ const events = [
 ];
 
 /* ================= TASKS — starts empty, add-as-you-go, must be assigned ================= */
-let tasks = []; // {id, text, person, done, stars}
-let taskSeq = 1;
-let pendingStars = {}; // per-person star value currently selected in the add-row, defaults to 1
+let tasks = []; // {id, text, person, done, stars} — id is crypto.randomUUID()
+let pendingStars = {}; // per-person star value currently selected in the add-row, defaults to 1 — local UI-only, not persisted
 family.forEach(f=>pendingStars[f.id]=1);
 
 /* ================= LISTS — starts empty, add-as-you-go ================= */
@@ -392,11 +442,12 @@ let lists = {
   grocery: {name:'Grocery List', color:'peach', items:[]},
   errands: {name:'Errands',      color:'lavender', items:[]}
 };
-let listItemSeq = 1;
 
-/* ================= MEALS — starts empty, + to add lunch/dinner per day ================= */
-let meals = {}; // meals[offset] = {lunch:[...], dinner:[...]}
-for(let i=0;i<7;i++) meals[i] = {lunch:[], dinner:[]};
+/* ================= MEALS — starts empty, + to add lunch/dinner per day =================
+   Keyed by real calendar date ('YYYY-MM-DD'), not by offset-from-today — that
+   way a meal entered for "Friday" stays on that actual Friday once persisted,
+   instead of sliding to a different real date as "today" advances. */
+let meals = {}; // meals[dateKey] = {lunch:[...], dinner:[...]}
 
 const REWARD_GOAL = 5;
 
@@ -501,12 +552,25 @@ function renderCalendarConnectionUI(){
 const HOME_LAT = 41.209, HOME_LON = -73.442, HOME_TZ = 'America/New_York';
 let weatherData = null;
 
-/* ================= CAMERAS (on hold — fill in when back at your computer) ================= */
-const CAMERA_CONFIG = [
-  { name: 'Front Door', ip: '192.168.1.50', user: 'admin', pass: 'YOUR_CAMERA_PASSWORD', snapshotPath: '/cgi-bin/snapshot.cgi' }
-];
+/* ================= CAMERAS =================
+   Credentials are a genuine secret (unlike the Firebase config), so they are
+   never written into this file / committed to the repo. Instead they're
+   entered once in Settings on each device and kept in that browser's
+   localStorage only — the wall iPad's Safari storage, not synced anywhere. */
 const CAMERA_REFRESH_SECONDS = 5;
 const AMCREST_SHORTCUT_URL = 'shortcuts://run-shortcut?name=OpenAmcrestViewPro';
+const CAMERA_STORAGE_KEY = 'fb_cameras';
+
+function loadCameraConfig(){
+  try{
+    const raw = localStorage.getItem(CAMERA_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveCameraConfig(list){
+  try{ localStorage.setItem(CAMERA_STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+}
+let CAMERA_CONFIG = loadCameraConfig(); // [{name, ip, user, pass, snapshotPath}]
 function snapshotUrl(cam){ return `http://${cam.user}:${cam.pass}@${cam.ip}${cam.snapshotPath}?t=${Date.now()}`; }
 
 const photoSeeds = ['fam-101','fam-102','fam-103','fam-104','fam-105','fam-106','fam-107','fam-108'];
@@ -648,6 +712,11 @@ function renderTasksMini(){
 function renderPreviews(){
   document.getElementById('photoPreview').innerHTML = photoSeeds.slice(0,4).map(s=>`<img src="${img(s,120,90)}" alt="">`).join('');
   const camPrev = document.getElementById('camPreview');
+  if(CAMERA_CONFIG.length===0){
+    camPrev.style.gridTemplateColumns = '1fr';
+    camPrev.innerHTML = `<div class="empty-state" style="padding:10px 4px; font-size:11.5px;">No cameras added yet</div>`;
+    return;
+  }
   camPrev.style.gridTemplateColumns = CAMERA_CONFIG.length>1 ? '1fr 1fr' : '1fr';
   camPrev.innerHTML = CAMERA_CONFIG.map(c=>`<div class="cam-thumb"><img src="${snapshotUrl(c)}" alt="" style="width:100%;height:44px;object-fit:cover;border-radius:8px;" onerror="this.style.opacity=0.15" onload="this.style.opacity=1"><span class="live"></span></div>`).join('');
 }
@@ -674,13 +743,13 @@ function renderTasks(){
   document.querySelectorAll('.task-check').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       const t = tasks.find(x=>x.id==cb.dataset.task);
-      if(t){ t.done = cb.checked; renderTasks(); renderTasksMini(); renderRewards(); }
+      if(t){ t.done = cb.checked; renderTasks(); renderTasksMini(); renderRewards(); saveState(); }
     });
   });
   document.querySelectorAll('[data-del-task]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tasks = tasks.filter(t=>t.id != btn.dataset.delTask);
-      renderTasks(); renderTasksMini(); renderRewards();
+      renderTasks(); renderTasksMini(); renderRewards(); saveState();
     });
   });
   document.querySelectorAll('.star-btn').forEach(btn=>{
@@ -693,9 +762,9 @@ function renderTasks(){
   function addTaskFor(pid, input){
     const val = input.value.trim();
     if(!val) return;
-    tasks.push({id:taskSeq++, text:val, person:pid, done:false, stars:pendingStars[pid]||1});
+    tasks.push({id:crypto.randomUUID(), text:val, person:pid, done:false, stars:pendingStars[pid]||1});
     input.value='';
-    renderTasks(); renderTasksMini(); renderRewards();
+    renderTasks(); renderTasksMini(); renderRewards(); saveState();
   }
   document.querySelectorAll('[data-add-btn]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -738,22 +807,22 @@ function renderLists(){
     cb.addEventListener('change', ()=>{
       const [key,id] = cb.dataset.listCheck.split(':');
       const item = lists[key].items.find(x=>String(x.id)===id);
-      if(item){ item.done = cb.checked; renderLists(); }
+      if(item){ item.done = cb.checked; renderLists(); saveState(); }
     });
   });
   document.querySelectorAll('[data-list-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const [key,id] = btn.dataset.listDel.split(':');
       lists[key].items = lists[key].items.filter(x=>String(x.id)!==id);
-      renderLists();
+      renderLists(); saveState();
     });
   });
   function addItemTo(key, input){
     const val = input.value.trim();
     if(!val) return;
-    lists[key].items.push({id:listItemSeq++, text:val, done:false});
+    lists[key].items.push({id:crypto.randomUUID(), text:val, done:false});
     input.value='';
-    renderLists();
+    renderLists(); saveState();
   }
   document.querySelectorAll('[data-list-add-btn]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -768,20 +837,26 @@ function renderLists(){
 
 /* ================= MEALS PAGE ================= */
 function renderMeals(){
-  const dayLabels = [0,1,2,3,4,5,6].map(o=> o===0?'Today': o===1?'Tomorrow': dateForOffset(o).toLocaleDateString('en-US',{weekday:'long'}));
-  document.getElementById('mealsTable').innerHTML = dayLabels.map((label,o)=>`
+  const days = [0,1,2,3,4,5,6].map(o=>{
+    const d = dateForOffset(o);
+    const key = dateKeyFor(d);
+    const label = o===0?'Today': o===1?'Tomorrow': d.toLocaleDateString('en-US',{weekday:'long'});
+    if(!meals[key]) meals[key] = {lunch:[], dinner:[]};
+    return {key, label};
+  });
+  document.getElementById('mealsTable').innerHTML = days.map(({key,label})=>`
     <div class="meal-row">
       <div class="meal-day">${label}</div>
       ${['lunch','dinner'].map(slot=>`
         <div class="meal-slot">
           <div class="slot-label">${slot}</div>
           <div class="meal-chips">
-            ${meals[o][slot].map((m,i)=>`<span class="meal-chip">${esc(m)}<button data-meal-del="${o}:${slot}:${i}">×</button></span>`).join('')}
+            ${meals[key][slot].map((m,i)=>`<span class="meal-chip">${esc(m)}<button data-meal-del="${key}:${slot}:${i}">×</button></span>`).join('')}
           </div>
-          <button class="meal-add-btn" data-meal-toggle="${o}:${slot}">+ Add ${slot}</button>
-          <div class="meal-add-row" id="mealadd-${o}-${slot}">
-            <input type="text" placeholder="e.g. Tacos" data-meal-input="${o}:${slot}">
-            <button data-meal-add="${o}:${slot}">Add</button>
+          <button class="meal-add-btn" data-meal-toggle="${key}:${slot}">+ Add ${slot}</button>
+          <div class="meal-add-row" id="mealadd-${key}-${slot}">
+            <input type="text" placeholder="e.g. Tacos" data-meal-input="${key}:${slot}">
+            <button data-meal-add="${key}:${slot}">Add</button>
           </div>
         </div>
       `).join('')}
@@ -790,33 +865,34 @@ function renderMeals(){
 
   document.querySelectorAll('[data-meal-toggle]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const [o,slot] = btn.dataset.mealToggle.split(':');
-      document.getElementById(`mealadd-${o}-${slot}`).classList.toggle('open');
+      const [key,slot] = btn.dataset.mealToggle.split(':');
+      document.getElementById(`mealadd-${key}-${slot}`).classList.toggle('open');
     });
   });
-  function addMeal(o, slot, input){
+  function addMeal(key, slot, input){
     const val = input.value.trim();
     if(!val) return;
-    meals[o][slot].push(val);
+    if(!meals[key]) meals[key] = {lunch:[], dinner:[]};
+    meals[key][slot].push(val);
     input.value='';
-    renderMeals();
+    renderMeals(); saveState();
   }
   document.querySelectorAll('[data-meal-add]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const [o,slot] = btn.dataset.mealAdd.split(':');
-      addMeal(o, slot, document.querySelector(`[data-meal-input="${o}:${slot}"]`));
+      const [key,slot] = btn.dataset.mealAdd.split(':');
+      addMeal(key, slot, document.querySelector(`[data-meal-input="${key}:${slot}"]`));
     });
   });
   document.querySelectorAll('[data-meal-input]').forEach(input=>{
     input.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){ const [o,slot] = input.dataset.mealInput.split(':'); addMeal(o, slot, input); }
+      if(e.key==='Enter'){ const [key,slot] = input.dataset.mealInput.split(':'); addMeal(key, slot, input); }
     });
   });
   document.querySelectorAll('[data-meal-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const [o,slot,i] = btn.dataset.mealDel.split(':');
-      meals[o][slot].splice(Number(i),1);
-      renderMeals();
+      const [key,slot,i] = btn.dataset.mealDel.split(':');
+      meals[key][slot].splice(Number(i),1);
+      renderMeals(); saveState();
     });
   });
 }
@@ -837,6 +913,10 @@ function renderPhotos(){
 
 /* ================= CAMERAS ================= */
 function renderCameras(){
+  if(CAMERA_CONFIG.length===0){
+    document.getElementById('camGrid').innerHTML = `<div class="card" style="grid-column:1/-1;"><div class="empty-state">No cameras added yet. <a data-goto="settings" style="color:var(--accent); font-weight:600; text-decoration:none;">Add one in Settings →</a></div></div>`;
+    return;
+  }
   document.getElementById('camGrid').innerHTML = CAMERA_CONFIG.map((c,i)=>`
     <div class="cam-tile" id="cam-${i}">
       <img src="${snapshotUrl(c)}" alt="${c.name}" onerror="document.getElementById('cam-${i}').classList.add('offline')" onload="document.getElementById('cam-${i}').classList.remove('offline')">
@@ -858,10 +938,40 @@ function renderSettings(){
   document.getElementById('settingsFamily').innerHTML = family.map(f=>
     `<div class="settings-row"><div class="av" style="background:${f.hex}">${f.name[0]}</div><span class="lbl">${f.name}</span></div>`
   ).join('');
-  document.getElementById('settingsCameras').innerHTML = CAMERA_CONFIG.map(c=>
-    `<div class="settings-row"><div class="av" style="background:var(--ink)">📷</div><span class="lbl">${c.name}</span><span class="val">${c.ip} · refresh ${CAMERA_REFRESH_SECONDS}s</span></div>`
-  ).join('') + `<div class="settings-row" style="border-top:1px dashed var(--line); margin-top:4px; padding-top:14px;"><span class="val" style="margin-left:0;">Edit camera IP / credentials in CAMERA_CONFIG in the page source.</span></div>`;
+
+  const camList = document.getElementById('settingsCameras');
+  if(CAMERA_CONFIG.length===0){
+    camList.innerHTML = `<div class="empty-state" style="padding:10px 4px; font-size:12.5px;">No cameras added yet</div>`;
+  }else{
+    camList.innerHTML = CAMERA_CONFIG.map((c,i)=>
+      `<div class="settings-row"><div class="av" style="background:var(--ink)">📷</div><span class="lbl">${esc(c.name)}</span><span class="val">${esc(c.ip)} · refresh ${CAMERA_REFRESH_SECONDS}s</span><button data-cam-del="${i}" style="margin-left:10px; border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:15px;">×</button></div>`
+    ).join('');
+    camList.querySelectorAll('[data-cam-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        CAMERA_CONFIG.splice(Number(btn.dataset.camDel),1);
+        saveCameraConfig(CAMERA_CONFIG);
+        renderSettings(); renderCameras(); renderPreviews();
+      });
+    });
+  }
 }
+function addCameraFromForm(){
+  const name = document.getElementById('camName').value.trim();
+  const ip = document.getElementById('camIp').value.trim();
+  const user = document.getElementById('camUser').value.trim();
+  const pass = document.getElementById('camPass').value;
+  const snapshotPath = document.getElementById('camPath').value.trim() || '/cgi-bin/snapshot.cgi';
+  if(!name || !ip){ return; }
+  CAMERA_CONFIG.push({name, ip, user, pass, snapshotPath});
+  saveCameraConfig(CAMERA_CONFIG);
+  document.getElementById('camName').value = '';
+  document.getElementById('camIp').value = '';
+  document.getElementById('camUser').value = '';
+  document.getElementById('camPass').value = '';
+  document.getElementById('camPath').value = '/cgi-bin/snapshot.cgi';
+  renderSettings(); renderCameras(); renderPreviews();
+}
+document.getElementById('camAddBtn').addEventListener('click', addCameraFromForm);
 
 /* ================= NAV ================= */
 function switchPage(id){

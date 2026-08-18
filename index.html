@@ -90,9 +90,6 @@
   .preview-card{flex:1; cursor:pointer;}
   .thumb-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
   .thumb-grid img{width:100%; height:44px; object-fit:cover; border-radius:8px; display:block;}
-  .cam-thumb{position:relative;}
-  .cam-thumb .live{position:absolute; top:3px; right:3px; width:6px; height:6px; border-radius:50%; background:#59d977; box-shadow:0 0 0 2px rgba(255,255,255,0.7); animation:pulse 1.6s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
 
   .cal-controls{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
   .cal-controls button{border:1px solid var(--line); background:var(--card); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:14px;}
@@ -167,19 +164,6 @@
   .strip img:hover{transform:translateY(-3px);}
   .strip img.active{outline:2px solid var(--accent);}
 
-  .cam-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px;}
-  .cam-tile{position:relative; border-radius:16px; overflow:hidden; background:#111; border:1px solid var(--line);}
-  .cam-tile img{width:100%; height:230px; object-fit:cover; display:block; transition:opacity .2s ease;}
-  .cam-tile .bar{position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; padding:26px 12px 10px; display:flex; justify-content:space-between; align-items:center;}
-  .cam-tile .bar .nm{font-weight:700; font-size:14px; font-family:'Poppins';}
-  .cam-tile .live-badge{position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.55); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; display:flex; align-items:center; gap:5px;}
-  .cam-tile .live-badge .d{width:6px; height:6px; border-radius:50%; background:#59d977; animation:pulse 1.6s infinite;}
-  .cam-tile.offline .live-badge .d{background:#ff4d4d; animation:none;}
-  .cam-tile.offline img{opacity:0.12;}
-  .offline-msg{display:none; position:absolute; inset:0; align-items:center; justify-content:center; text-align:center; padding:24px; color:#fff; font-size:13px; font-weight:600; line-height:1.5;}
-  .cam-tile.offline .offline-msg{display:flex;}
-  .open-app-btn{background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.55); color:#fff; text-decoration:none; font-size:11px; font-weight:600; padding:6px 12px; border-radius:999px; white-space:nowrap;}
-
   .settings-list{display:flex; flex-direction:column;}
   .settings-row{display:flex; align-items:center; gap:12px; padding:14px 4px; border-bottom:1px solid var(--line);}
   .settings-row:last-child{border-bottom:none;}
@@ -223,7 +207,6 @@
       <button class="navbtn" data-page="photos"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5.5-5.5L3 20"/></svg><span>Photos</span></button>
       <button class="navbtn" data-page="lists"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1.3"/><circle cx="3.5" cy="12" r="1.3"/><circle cx="3.5" cy="18" r="1.3"/></svg><span>Lists</span></button>
       <button class="navbtn" data-page="sleep"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1110 3.2 6.5 6.5 0 0020 14.5z"/></svg><span>Sleep</span></button>
-      <button class="navbtn" data-page="cameras"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg><span>Cameras</span></button>
       <div class="navspacer"></div>
       <button class="navbtn" data-page="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.2a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.2a1.7 1.7 0 00-1.4 1z"/></svg><span>Settings</span></button>
     </nav>
@@ -249,8 +232,7 @@
             <div class="card"><h3>Weather</h3><div class="weather-strip" id="weatherStrip"><div class="empty-state" style="padding:10px 0;">Loading…</div></div></div>
             <div class="card"><h3>Open Tasks <a data-goto="tasks">See all →</a></h3><div id="tasksMini"></div></div>
             <div class="preview-row">
-              <div class="card preview-card" data-goto="photos"><h3>Photos</h3><div class="thumb-grid" id="photoPreview"></div></div>
-              <div class="card preview-card" data-goto="cameras"><h3>Cameras</h3><div class="thumb-grid" id="camPreview"></div></div>
+              <div class="card preview-card" data-goto="photos" style="flex:1;"><h3>Photos</h3><div class="thumb-grid" id="photoPreview"></div></div>
             </div>
           </div>
         </div>
@@ -291,32 +273,9 @@
         <div class="card"><div class="empty-state">Not set up yet — let's decide what this should do before I build it.</div></div>
       </section>
 
-      <section class="page" id="page-cameras">
-        <h1 class="page-title">Cameras</h1>
-        <div class="cam-grid" id="camGrid"></div>
-      </section>
-
       <section class="page" id="page-settings">
         <h1 class="page-title">Settings</h1>
         <div class="card"><h3>Household</h3><div class="settings-list" id="settingsFamily"></div></div>
-        <div class="card" style="margin-top:16px;"><h3>Cameras</h3>
-          <div class="settings-list" id="settingsCameras"></div>
-          <div id="cameraAddForm" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="camName" placeholder="Name (e.g. Front Door)" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
-              <input type="text" id="camIp" placeholder="Local IP (e.g. 192.168.1.50)" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
-            </div>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="camUser" placeholder="Username" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
-              <input type="password" id="camPass" placeholder="Password" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
-            </div>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="camPath" placeholder="Snapshot path" value="/cgi-bin/snapshot.cgi" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Inter'; font-size:13px;">
-              <button id="camAddBtn" style="border:none; background:var(--accent); color:#fff; border-radius:8px; padding:0 16px; font-weight:700; font-size:13px; cursor:pointer;">Add Camera</button>
-            </div>
-            <div style="font-size:11.5px; color:var(--ink-soft); line-height:1.5;">Stored only in this browser's local storage — never written to the file or the GitHub repo. You'll need to add it again on any other device you view the board from.</div>
-          </div>
-        </div>
         <div class="card" style="margin-top:16px;"><h3>Google Calendar</h3>
           <div class="settings-row"><span class="lbl">smittyfamilyct@gmail.com</span>
             <span class="val" id="gcalSettingsStatus">Not connected</span>
@@ -552,27 +511,6 @@ function renderCalendarConnectionUI(){
 const HOME_LAT = 41.209, HOME_LON = -73.442, HOME_TZ = 'America/New_York';
 let weatherData = null;
 
-/* ================= CAMERAS =================
-   Credentials are a genuine secret (unlike the Firebase config), so they are
-   never written into this file / committed to the repo. Instead they're
-   entered once in Settings on each device and kept in that browser's
-   localStorage only — the wall iPad's Safari storage, not synced anywhere. */
-const CAMERA_REFRESH_SECONDS = 5;
-const AMCREST_SHORTCUT_URL = 'shortcuts://run-shortcut?name=OpenAmcrestViewPro';
-const CAMERA_STORAGE_KEY = 'fb_cameras';
-
-function loadCameraConfig(){
-  try{
-    const raw = localStorage.getItem(CAMERA_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){ return []; }
-}
-function saveCameraConfig(list){
-  try{ localStorage.setItem(CAMERA_STORAGE_KEY, JSON.stringify(list)); }catch(e){}
-}
-let CAMERA_CONFIG = loadCameraConfig(); // [{name, ip, user, pass, snapshotPath}]
-function snapshotUrl(cam){ return `http://${cam.user}:${cam.pass}@${cam.ip}${cam.snapshotPath}?t=${Date.now()}`; }
-
 const photoSeeds = ['fam-101','fam-102','fam-103','fam-104','fam-105','fam-106','fam-107','fam-108'];
 const img = (seed,w,h)=>`https://picsum.photos/seed/${seed}/${w}/${h}`;
 
@@ -711,14 +649,6 @@ function renderTasksMini(){
 }
 function renderPreviews(){
   document.getElementById('photoPreview').innerHTML = photoSeeds.slice(0,4).map(s=>`<img src="${img(s,120,90)}" alt="">`).join('');
-  const camPrev = document.getElementById('camPreview');
-  if(CAMERA_CONFIG.length===0){
-    camPrev.style.gridTemplateColumns = '1fr';
-    camPrev.innerHTML = `<div class="empty-state" style="padding:10px 4px; font-size:11.5px;">No cameras added yet</div>`;
-    return;
-  }
-  camPrev.style.gridTemplateColumns = CAMERA_CONFIG.length>1 ? '1fr 1fr' : '1fr';
-  camPrev.innerHTML = CAMERA_CONFIG.map(c=>`<div class="cam-thumb"><img src="${snapshotUrl(c)}" alt="" style="width:100%;height:44px;object-fit:cover;border-radius:8px;" onerror="this.style.opacity=0.15" onload="this.style.opacity=1"><span class="live"></span></div>`).join('');
 }
 
 /* ================= TASKS PAGE ================= */
@@ -911,67 +841,12 @@ function renderPhotos(){
   });
 }
 
-/* ================= CAMERAS ================= */
-function renderCameras(){
-  if(CAMERA_CONFIG.length===0){
-    document.getElementById('camGrid').innerHTML = `<div class="card" style="grid-column:1/-1;"><div class="empty-state">No cameras added yet. <a data-goto="settings" style="color:var(--accent); font-weight:600; text-decoration:none;">Add one in Settings →</a></div></div>`;
-    return;
-  }
-  document.getElementById('camGrid').innerHTML = CAMERA_CONFIG.map((c,i)=>`
-    <div class="cam-tile" id="cam-${i}">
-      <img src="${snapshotUrl(c)}" alt="${c.name}" onerror="document.getElementById('cam-${i}').classList.add('offline')" onload="document.getElementById('cam-${i}').classList.remove('offline')">
-      <div class="offline-msg">Camera unavailable —<br>check you're on home WiFi,<br>or use the Amcrest app.</div>
-      <span class="live-badge"><span class="d"></span>${CAMERA_REFRESH_SECONDS}s refresh</span>
-      <div class="bar"><span class="nm">${c.name}</span><a class="open-app-btn" href="${AMCREST_SHORTCUT_URL}">Open Amcrest ›</a></div>
-    </div>
-  `).join('');
-}
-function refreshCameraImages(){
-  CAMERA_CONFIG.forEach((c,i)=>{ const t=document.getElementById('cam-'+i); if(t) t.querySelector('img').src = snapshotUrl(c); });
-  const previewImgs = document.querySelectorAll('#camPreview img');
-  CAMERA_CONFIG.forEach((c,i)=>{ if(previewImgs[i]) previewImgs[i].src = snapshotUrl(c); });
-}
-setInterval(refreshCameraImages, CAMERA_REFRESH_SECONDS*1000);
-
 /* ================= SETTINGS ================= */
 function renderSettings(){
   document.getElementById('settingsFamily').innerHTML = family.map(f=>
     `<div class="settings-row"><div class="av" style="background:${f.hex}">${f.name[0]}</div><span class="lbl">${f.name}</span></div>`
   ).join('');
-
-  const camList = document.getElementById('settingsCameras');
-  if(CAMERA_CONFIG.length===0){
-    camList.innerHTML = `<div class="empty-state" style="padding:10px 4px; font-size:12.5px;">No cameras added yet</div>`;
-  }else{
-    camList.innerHTML = CAMERA_CONFIG.map((c,i)=>
-      `<div class="settings-row"><div class="av" style="background:var(--ink)">📷</div><span class="lbl">${esc(c.name)}</span><span class="val">${esc(c.ip)} · refresh ${CAMERA_REFRESH_SECONDS}s</span><button data-cam-del="${i}" style="margin-left:10px; border:none; background:none; color:var(--ink-soft); cursor:pointer; font-size:15px;">×</button></div>`
-    ).join('');
-    camList.querySelectorAll('[data-cam-del]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        CAMERA_CONFIG.splice(Number(btn.dataset.camDel),1);
-        saveCameraConfig(CAMERA_CONFIG);
-        renderSettings(); renderCameras(); renderPreviews();
-      });
-    });
-  }
 }
-function addCameraFromForm(){
-  const name = document.getElementById('camName').value.trim();
-  const ip = document.getElementById('camIp').value.trim();
-  const user = document.getElementById('camUser').value.trim();
-  const pass = document.getElementById('camPass').value;
-  const snapshotPath = document.getElementById('camPath').value.trim() || '/cgi-bin/snapshot.cgi';
-  if(!name || !ip){ return; }
-  CAMERA_CONFIG.push({name, ip, user, pass, snapshotPath});
-  saveCameraConfig(CAMERA_CONFIG);
-  document.getElementById('camName').value = '';
-  document.getElementById('camIp').value = '';
-  document.getElementById('camUser').value = '';
-  document.getElementById('camPass').value = '';
-  document.getElementById('camPath').value = '/cgi-bin/snapshot.cgi';
-  renderSettings(); renderCameras(); renderPreviews();
-}
-document.getElementById('camAddBtn').addEventListener('click', addCameraFromForm);
 
 /* ================= NAV ================= */
 function switchPage(id){
@@ -998,7 +873,6 @@ renderRewards();
 renderLists();
 renderMeals();
 renderPhotos();
-renderCameras();
 renderSettings();
 loadWeather(); setInterval(loadWeather, 15*60*1000); // refresh weather every 15 min
 renderCalendarConnectionUI();
